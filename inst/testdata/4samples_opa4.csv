@@ -1,0 +1,12 @@
+[Header],,,,,,
+Investigator Name,Anon,,,,,
+Project Name,LOH,,,,,
+Experiment Name,LOH,,,,,
+Date,11032005,,,,,
+
+[Data],,,,,,
+Sample_Name,Sample_Well,Sample_Plate,Sample_Group,Pool_ID,Sentrix_ID,Sentrix_Position
+106NB,B12,GS0008391-HYB,training,GS0005704-OPA,1280260,R002_C012
+106TV,C12,GS0008391-HYB,training,GS0005704-OPA,1280260,R003_C012
+108NB,G10,GS0008391-HYB,training,GS0005704-OPA,1280260,R007_C010
+108TV,H10,GS0008391-HYB,training,GS0005704-OPA,1280260,R008_C010

@@ -1,0 +1,170 @@
+%
+% NOTE -- ONLY EDIT beadarraySNP.Rnw!!!
+% beadarraySNP.tex file will get overwritten.
+%
+%\VignetteIndexEntry{beadarraySNP Vignette}
+%\VignetteDepends{}
+%\VignetteKeywords{SNP Analysis}
+%\VignettePackage{beadarraySNP}
+\documentclass{article}
+
+\usepackage{hyperref}
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+
+
+\newcommand{\classdef}[1]{%
+  {\em #1}
+}
+\begin{document}
+\title{Introduction of beadarraySNP}
+\maketitle
+
+\section*{Introduction}
+
+beadarraySNP is a Bioconductor package for the analysis of Illumina 
+genotyping BeadArray data, especially derived from the GoldenGate assay.
+The functionality includes importing datafiles produced by Illumina 
+software, doing LOH analysis and performing copy number analysis.
+
+\section{Import}
+
+The package contains an artificially small example to show some of the key 
+aspects of analysis. Normally an experiment contains 96 samples spread over four
+probe panels of about 1500 SNPs each. 
+The example has data from 2 colorectal tumors and corresponding leukocyte DNA of 1 
+probe (or OPA) panel. This particular OPA panel contains probes on chromosomes 
+16-20 and X and Y.
+<<R.hide, echo=F, results=hide>>=
+library(beadarraySNP)
+@
+In this case all datafiles have been put in 1 directory. The import function 
+\Rfunction{read.SnpSetIllumina} can be invoked to use all separate directories 
+that are used with the Illumina software.
+
+We start by loading in the data into a \Rclass{SnpSetIllumina} object.
+A samplesheet is used to identify the samples in the experiment. This file can
+be created by the Illumina software. The next code shows the example 
+samplesheet. The import function searches for the line starting with [Data].
+The "Sample\_Well", "Sample\_Plate", and "Sample\_Group" columns are not used, but
+the other columns should have meaningful values. The "Pool\_ID" and "Sentrix\_ID"
+should be identical for all samples in 1 samplesheet. Samples from multiple 
+experiments or multiple probe panels can be combined after they are imported.
+
+<<Samplesheet>>=
+datadir <- system.file("testdata", package="beadarraySNP")
+readLines(paste(datadir,"4samples_opa4.csv",sep="/"))
+@
+
+<<Import>>=
+SNPdata <- read.SnpSetIllumina(paste(datadir,"4samples_opa4.csv",sep="/"),datadir)
+SNPdata
+@
+
+The targets file contains extra information on the samples which are important 
+during normalization. The \Rfunarg{NorTum} column indicates normal and tumor samples.
+The tumor samples are not used for the invariant set in between sample normalization.
+The \Rfunarg{Gender} column is used to properly normalize the sex chromosomes.
+The following lines show a possible way to add these columns to the \Rfunarg{phenoData}
+slot of the object. If a \Rfunarg{NorTum} and/or \Rfunarg{Gender} column is in the
+\Rfunarg{phenoData} slot they will be automatically used later on.
+
+<<Phenodata, results=hide>>=
+pd<-coerce(read.phenoData(paste(datadir,"targets.txt",sep="/"),sep="\t"),new("AnnotatedDataFrame"))
+pData(SNPdata)<-cbind(pData(SNPdata),pData(pd))
+varMetadata(SNPdata) <- rbind(varMetadata(SNPdata),varMetadata(pd))
+@
+
+\section{Quality control}
+
+Illumina Sentrix arrays contain 96 wells to process up to 96 samples. Each well
+can be used with a separate set of probes or OPA panel. 
+The example shows the QC of the full experiment form which the example files
+were taken. This experiment consisted of 24 samples with 4 probe panels each
+
+<<QC1, results=hide, fig=TRUE>>=
+qc<-calculateQCarray(SNPdata)
+data(QC.260)
+plotQC(QC.260,"greenMed")
+@
+
+
+Other types of plots ("intensityMed","greenMed","redMed","validn","annotation",
+"samples") show the median intensity, median red intensity or identifying 
+information. 
+
+<<QC2, fig=TRUE>>=
+par(mfrow=c(2,2),mar=c(4,2,1,1))
+reportSamplePanelQC(QC.260,by=8)
+SNPdata<-removeLowQualitySamples(SNPdata,1500,100,"OPA")
+@
+
+
+Based on these findings, low quality samples can be removed from the experiment
+
+\section{Normalization}
+
+Normalization to calculate copy number is a multi-step process. In Ref. we have 
+determined that the following procedure provides the optimal strategy:
+\begin{enumerate}
+\item Perform quantile normalization between both colors of a sample. This is allowed
+because the frequencies of both alleles throughout a sample is nearly identical.
+This action also neutralizes any dye bias.
+\item scale each sample using the median of the high quality heterozygous SNPs as
+the normalization factor. Genomic regions that show copy number alterations are 
+likely to show LOH(loss of heterozygosity), or are harder to genotype leading
+to a decrease quality score of the call.
+\item scale each probe using the normal samples in the experiment. Assume that
+these samples are diploid, and have a copy number of 2.
+\end{enumerate}
+<<Normalization,results=hide>>=
+SNPnrm<-normalizeBetweenAlleles.SNP(SNPdata)
+SNPnrm<-normalizeWithinArrays.SNP(SNPnrm,callscore=0.8,relative=TRUE,fixed=FALSE,quantilepersample=TRUE)
+SNPnrm<-normalizeLoci.SNP(SNPnrm,normalizeTo=2)
+@
+
+\section{Reporting}
+Although the OPA panels contain distinct chromosomes, also a few spurious SNPs on
+other chromosomes are in it. We first select the probes that are located on the 
+chromosomes for this OPA panel.
+<<reporting,results=hide, fig=TRUE>>=
+SNPnrm<-SNPnrm[reporterInfo(SNPnrm)$CHR %in% c("4","16","17","18","19","20","X","Y"),]
+reportSamplesSmoothCopyNumber(SNPnrm,normalizedTo=2,smooth.lambda=4)
+@
+
+A figure is created of all 4 samples in the dataset with copynumber along the
+chromosomes.
+
+<<reporting2,results=hide, fig=TRUE>>=
+reportSamplesSmoothCopyNumber(SNPnrm, normalizedTo=2, paintCytobands =TRUE, smooth.lambda=4,organism="hsa",sexChromosomes=TRUE)
+@
+
+By using the \Rfunarg{organism} a figure is created that shows all chromosomes in 2 
+columns. Experimental data is plotted wherever it is available in the dataset.
+\section{Session Information}
+
+The version number of R and packages loaded for generating the vignette were:
+
+<<echo=FALSE,results=tex>>=
+toLatex(sessionInfo())
+@
+
+\end{document}
+
+
+
+
+

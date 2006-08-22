@@ -1,0 +1,21 @@
+import(tools, Biobase)
+
+exportClasses(SnpSetIllumina, QCIllumina)
+
+exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featureNames, 
+             ncol, pData, phenoData, sampleNames, samples, reporterInfo,
+             "annotation<-", "description<-", "experimentData<-", "exprs<-", 
+             "featureNames<-", "geneNames<-", "pData<-",
+             "phenoData<-", "sampleNames<-", "assayData<-", "reporterInfo<-",
+             dim, assayData, reporterNames, initialize,
+						 "arrayType<-", "arrayID<-", arrayType, arrayID,
+						 plotQC, reportSamplePanelQC )
+
+export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
+       normalizeBetweenAlleles.SNP, normalizeWithinArrays.SNP,
+       normalizeLoci.SNP, RG2polar, polar2RG, standardNormalization, 
+       heterozygousSNPs, compareGenotypes, heterozygosity, 
+       reportSamplesSmoothCopyNumber, reportChromosomesSmoothCopyNumber,
+       pdfSamplesSmoothCopyNumber, pdfChromosomesSmoothCopyNumber,
+       removeLowQualityProbes, removeLowQualitySamples,
+			 calculateQCarray, pdfQC )
