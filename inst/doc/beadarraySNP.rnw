@@ -121,13 +121,13 @@ Normalization to calculate copy number is a multi-step process. In Ref. we have
 determined that the following procedure provides the optimal strategy:
 \begin{enumerate}
 \item Perform quantile normalization between both colors of a sample. This is allowed
-because the frequencies of both alleles throughout a sample is nearly identical.
-This action also neutralizes any dye bias.
-\item scale each sample using the median of the high quality heterozygous SNPs as
+because the frequencies of both alleles throughout a sample are nearly identical
+in practice. This action also neutralizes any dye bias.
+\item Scale each sample using the median of the high quality heterozygous SNPs as
 the normalization factor. Genomic regions that show copy number alterations are 
 likely to show LOH(loss of heterozygosity), or are harder to genotype leading
 to a decrease quality score of the call.
-\item scale each probe using the normal samples in the experiment. Assume that
+\item Scale each probe using the normal samples in the experiment. Assume that
 these samples are diploid, and have a copy number of 2.
 \end{enumerate}
 <<Normalization,results=hide>>=
