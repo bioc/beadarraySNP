@@ -14,7 +14,7 @@ removeLowQualitySamples(object, min.intensity = 1500, min.gt = 100, subsample = 
 	     value in either Red or Green channel are removed}
   \item{min.gt}{\code{numeric}. Samples that have less than this amount of valid 
     genotypes are removed}
-  \item{subsample}{factor or column name in \code{reporterInfo} slot of \code{object}}
+  \item{subsample}{factor or column name in \code{featureData} slot of \code{object}}
 }
 \value{
 This function returns an \code{SnpSetIllumina} object.

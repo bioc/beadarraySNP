@@ -30,7 +30,7 @@ experiment. The GCS is a probe-specific, sample specific value that measures how
 a probe in a sample is to the clusters determined in the training step. This value is 
 always lower than the GTS for a probe.\cr
   \code{read.SnpSetIllumina} will put GCS into the \code{callProbability} element 
-of the \code{assaydata} slot and the GTS into the \code{reporterInfo} slot. The 
+of the \code{assaydata} slot and the GTS into the \code{featureData} slot. The 
 function uses these locations to retrieve the necessary information.\cr
   If \code{relative} is \code{FALSE} then the raw GCS values are compared to the
 \code{threshold}. In this case a \code{threshold} of around 0.5 should be used. If 

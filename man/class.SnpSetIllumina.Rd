@@ -9,8 +9,8 @@
 \alias{initialize,SnpSetIllumina-method}
 \alias{combine,SnpSetIllumina,SnpSetIllumina-method}
 \alias{combine,SnpSetIllumina,ANY-method}
-\alias{reporterInfo<-,SnpSetIllumina-method}
-\alias{reporterInfo,SnpSetIllumina-method}
+\alias{featureData<-,SnpSetIllumina-method}
+\alias{featureData,SnpSetIllumina-method}
 
 \title{
   Class to Contain Objects Describing High-Throughput SNP Assays.
@@ -22,7 +22,7 @@
   \code{\link[Biobase:eSet]{eSet}}, and requires matrices \code{R}, \code{G}, \code{call},
   \code{callProbability} as assay data members.  
   
-  It supports reporterInfo. Several visualization methods use columns \code{CHR} 
+  It supports featureData. Several visualization methods use columns \code{CHR} 
   and \code{MapInfo}. The \code{CHR} column is used to handle sex chromosomes in 
   a specific way. The \code{OPA} column is the default way to specify subsamples. } 
 
@@ -40,7 +40,7 @@
     callProbability = [matrix],
     G = [matrix],
     R = [matrix],
-    reporterInfo = [data.frameOrNULL],
+    featureData = [data.frameOrNULL],
     ...)
   }
 
@@ -69,7 +69,7 @@
     \item{\code{phenoData}:}{See \code{\link[Biobase:eSet]{eSet}}}
     \item{\code{experimentData}:}{See \code{\link[Biobase:eSet]{eSet}}}
     \item{\code{annotation}:}{See \code{\link[Biobase:eSet]{eSet}}}
-    \item{\code{reporterInfo}:}{annotation for SNPs, usually will contain a 
+    \item{\code{featureData}:}{annotation for SNPs, usually will contain a 
       \code{CHR} and a \code{MapInfo} column for genomic localization }
   }
 }
@@ -80,10 +80,6 @@
      \item{\code{exprs(SnpSetIllumina)}, \code{exprs(SnpSetIllumina,matrix)<-}}{Access and
        set elements named \code{call} in the \code{AssayData}
        slot.}
-     \item{\code{reporterInfo(SnpSetIllumina)}, \code{reporterInfo(SnpSetIllumina,data.frame)<-}}{
-		   access to the \code{reporterInfo} slot}  
-     \item{\code{object[(index)}:}{Conducts subsetting of matrices and
-       phenoData and reporterInfo components }
      \item{\code{combine(SnpSetIllumina,SnpSetIllumina)}:}{performs \code{union}-like 
 		   combination in both dimensions of SnpSetIllumina objects}
   }
@@ -104,6 +100,8 @@
      \item{\code{annotation(SnpSetIllumina)}, \code{annotation(SnpSetIllumina,value)<-}}{See \code{\link[Biobase:eSet]{eSet}}}
      \item{\code{storageMode(eSet)}, \code{storageMode(eSet,character)<-}:}{See \code{\link[Biobase:eSet]{eSet}}}
      \item{\code{reporterNames(SnpSetIllumina)}, \code{reporterNames(SnpSetIllumina,value)<-}:}{DEPRECATED}
+     \item{\code{featureData(SnpSetIllumina)}, \code{featureData(SnpSetIllumina,data.frame)<-}}{See \code{\link[Biobase:eSet]{eSet}}}
+     \item{\code{object[(index)}:}{Conducts subsetting of matrices and phenoData and featureData components }
   }
 
   Standard generic methods:

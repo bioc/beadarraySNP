@@ -12,8 +12,8 @@ heterozygousSNPs<-function(object,
     if (!is.null(assayData(object)[["callProbability"]])){
       GenScore<-assayData(object)[["callProbability"]]
       if (relative) {
-        if ("GTS" %in% colnames(reporterInfo(object)))
-          GenScore<-sweep(GenScore,1,reporterInfo(object)[,"GTS"],"/")
+        if ("GTS" %in% varLabels(featureData(object)))
+          GenScore<-sweep(GenScore,1,pData(featureData(object))[,"GTS"],"/")
         else warning("GenTrainScore is missing; heterozygous SNPs derived from absolute quality score")
       }
       if (percentile) {

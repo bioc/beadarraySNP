@@ -1,7 +1,4 @@
 setClass("SnpSetIllumina", 
-   representation(
-      reporterInfo = "data.frameOrNULL"
-   ),
    contains = "eSet"
 )
 

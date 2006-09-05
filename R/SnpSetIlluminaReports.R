@@ -5,18 +5,18 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
   plotLOH<-match.arg(plotLOH)
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
   # make sure chromosmes are sorted
-  ind<-order(reporterInfo(snpdata)[,"CHR"],reporterInfo(snpdata)[,"MapInfo"])
+  ind<-order(pData(featureData(snpdata))[,"CHR"],pData(featureData(snpdata))[,"MapInfo"])
   snpdata<-snpdata[ind,]
   sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
-  chroms<-unique(reporterInfo(snpdata)[,"CHR"])
+  chroms<-unique(pData(featureData(snpdata))[,"CHR"])
   intensities<-assayData(snpdata)[["intensity"]]
   for (pageID in levels(factor(grouping))){
     samples<-sampleNames(snpdata)[grouping == pageID]
     if (length(samples)>0) {
-      dchrompos<-prepareGenomePlot(reporterInfo(snpdata)[,c("CHR","MapInfo")],...)
+      dchrompos<-prepareGenomePlot(pData(featureData(snpdata))[,c("CHR","MapInfo")],...)
       for (i1 in 1:length(samples) ) {
         for (chrom in chroms) {
-          probes<-reporterInfo(snpdata)[,"CHR"] == chrom
+          probes<-pData(featureData(snpdata))[,"CHR"] == chrom
           if (sum(!is.na(intensities[probes,samples[i1]]))>10 ) {
             smoothed<-quantsmooth(intensities[probes,samples[i1]],smooth.lambda=smooth.lambda,ridge.kappa=ridge.kappa)
             lines(dchrompos[probes,2],dchrompos[probes,1]+(smoothed-normalizedTo)/normalizedTo,col=sample.colors[i1],lwd=1.5)
@@ -64,19 +64,19 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
   sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
   # make sure chromosmes are sorted
-  ind<-order(numericCHR(reporterInfo(snpdata)[,"CHR"]),reporterInfo(snpdata)[,"MapInfo"])
+  ind<-order(numericCHR(pData(featureData(snpdata))[,"CHR"]),pData(featureData(snpdata))[,"MapInfo"])
   snpdata<-snpdata[ind,]
-  chroms<-unique(numericCHR(reporterInfo(snpdata)[,"CHR"]))
+  chroms<-unique(numericCHR(pData(featureData(snpdata))[,"CHR"]))
   intensities<-assayData(snpdata)[["intensity"]]
   for (group in levels(factor(grouping))){
     samples<-sampleNames(snpdata)[grouping == group]
     if (length(samples)>0) {
       for (chrom in chroms) {
-        probes<-numericCHR(reporterInfo(snpdata)[,"CHR"]) == chrom
+        probes<-numericCHR(pData(featureData(snpdata))[,"CHR"]) == chrom
         if (any(apply(intensities[probes,samples,drop=FALSE],2,function(x) sum(!is.na(x))>10))) {
           plot(c(0,lengthChromosome(chrom,"bases")),c(1,3),main=paste(group,"Chromosome",characterCHR(chrom)),type="n",ylab="intensity",xlab="",xaxt="n")
           paintCytobands(chrom,pos=c(0,ideo.ypos),units="bases",width=ideo.width,legend=FALSE,bleach=ideo.bleach)
-          plotSmoothed(intensities[probes,samples,drop=FALSE],reporterInfo(snpdata)[probes,"MapInfo"],smooth.lambda=smooth.lambda,plotnew=FALSE,...)
+          plotSmoothed(intensities[probes,samples,drop=FALSE],pData(featureData(snpdata))[probes,"MapInfo"],smooth.lambda=smooth.lambda,plotnew=FALSE,...)
           legend("topleft",samples,col=1:length(samples)+1,lty=1,lwd=2,ncol=length(samples))
           if (plotLOH!="none") {
             probeNames<-rownames(snpdata)[probes]
@@ -94,9 +94,9 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
               if (length(n1)>0) {
                 compGenotype<-compareGenotypes(assayData(snpdata)[["call"]][probes,samples[i1]],assayData(snpdata)[["call"]][probes,samples[n1[1]]])
                 LOH<-probeNames[compGenotype=="l"] # loss 
-                if(length(LOH)>0) points(reporterInfo(snpdata)[LOH,"MapInfo"],0.4-(i1*0.05),pch="'",col=sample.colors[i1])
+                if(length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],0.4-(i1*0.05),pch="'",col=sample.colors[i1])
                 LOH<-probeNames[compGenotype=="i"] # heterozygous normal)
-                if(length(LOH)>0) points(reporterInfo(snpdata)[LOH,"MapInfo"],0.4-(i1*0.05),pch="|",col=sample.colors[i1])
+                if(length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],0.4-(i1*0.05),pch="|",col=sample.colors[i1])
               }
             }
           }

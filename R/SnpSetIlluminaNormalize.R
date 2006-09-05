@@ -3,7 +3,7 @@
 getSubsample<-function(object,subsample) {
   if (length(subsample)!=nrow(object)) {
     if (is.null(subsample) || subsample=="") subsample<-rep(1,nrow(object))
-    else subsample<-reporterInfo(object)[,subsample]
+    else subsample<-pData(featureData(object))[,subsample]
   }
   as.factor(subsample)
 }
@@ -20,7 +20,7 @@ backgroundEstimate<-function(object,
   maxangle=0.3,
   subsample="OPA") {
   ## object   : class SnpSetIllumina; Green and Red not NULL
-  ## subsample: character with column name in ReporterInfo
+  ## subsample: character with column name in featureData
   ##            "" or NULL
   ##            vector/factor of length nrow
   ## method   : minimum
@@ -209,16 +209,16 @@ normalizeWithinArrays.SNP<-function(
   else heterozyg<-assayDataElement(object,"call") == "AB" | assayDataElement(object,"call") == "H"
 
   # exclude sex chromosomes from normalization
-  if ("CHR" %in% colnames(reporterInfo(object))) {
-    numChrom<-numericCHR(reporterInfo(object)[,"CHR"])
+  if ("CHR" %in% varLabels(featureData(object))) {
+    numChrom<-numericCHR(pData(featureData(object))[,"CHR"])
     heterozyg[numChrom>90,]<-FALSE
   }
   subsample<-getSubsample(object,subsample)
 
   GenScore<-assayDataElement(object,"callProbability")
   if (relative) {
-    if ("GTS" %in% colnames(reporterInfo(object))) GenScore<-sweep(GenScore,1,reporterInfo(object)[,"GTS"],"/")
-    else stop("reporterInfo does not contain a 'GTS' column, relative=TRUE can not be used")
+    if ("GTS" %in% varLabels(featureData(object))) GenScore<-sweep(GenScore,1,pData(featureData(object))[,"GTS"],"/")
+    else stop("featureData does not contain a 'GTS' column, relative=TRUE can not be used")
   }
   if (fixed) gc.min<-callscore
   else if (!quantilepersample) gc.min<-quantile(GenScore[heterozyg],probs=callscore,na.rm=TRUE)
@@ -280,9 +280,9 @@ normalizeLoci.SNP <- function(
   switch(method, normals = {
     probe.med<-apply(R[,NorTum,drop=FALSE]+G[,NorTum,drop=FALSE],1,median,na.rm=TRUE)
     if (!all(Gender)) {
-      if ("CHR" %in% colnames(reporterInfo(object))) {
+      if ("CHR" %in% varLabels(featureData(object))) {
        # Handle Sexchromosomes
-        numChrom<-numericCHR(reporterInfo(object)[,"CHR"])
+        numChrom<-numericCHR(pData(featureData(object))[,"CHR"])
         # Use only normal females for X
         probes<-numChrom==98
         probe.med[probes]<-apply(R[probes,NorTum & Gender,drop=FALSE]+G[probes,NorTum & Gender,drop=FALSE],1,median,na.rm=TRUE)

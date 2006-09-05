@@ -7,7 +7,7 @@ setMethod("initialize", "SnpSetIllumina",
                    callProbability = new("matrix"),
                    G = new("matrix"),
                    R = new("matrix"),
-                   reporterInfo = new("data.frameOrNULL"),
+                   featureData = new("AnnotatedDataFrame"),
                    ... ) {
             .Object<-callNextMethod(.Object,
                            assayData = assayDataNew(
@@ -18,35 +18,12 @@ setMethod("initialize", "SnpSetIllumina",
                              ...),
                            phenoData = phenoData,
                            experimentData = experimentData,
-                           annotation = annotation)
-            .Object@reporterInfo<-reporterInfo
-            if (!is.null(.Object@reporterInfo)) {
-              rpNames<-featureNames(.Object)
-              if (is.null(rownames(.Object@reporterInfo))) {
-                if (dim(.Object)[[1]] != nrow(.Object@reporterInfo)) stop("Conflicting number of rows in 'reporterInfo'")
-                rownames(.Object@reporterInfo)<-rpNames
-              } else {
-                if (!all(rpNames == rownames(.Object@reporterInfo))) stop("Conflicting row names in 'reporterInfo'")
-              }
-
-            }
+                           annotation = annotation,
+													 featureData = featureData)
             validObject(.Object)
             .Object
 
           })
-
-setMethod("[", "SnpSetIllumina", function(x, i, j, ..., drop = FALSE) {
-          x<-callNextMethod(x, i, j, ..., drop=drop)
-          if(!is.null(reporterInfo(x)) && !missing(i)) reporterInfo(x)<-reporterInfo(x)[i,, ..., drop = drop]
-          x
-})
-
-setMethod("reporterInfo", "SnpSetIllumina", function(object) object@reporterInfo)
-
-setReplaceMethod("reporterInfo", "SnpSetIllumina", function(object, value) {
-  object@reporterInfo <- value
-  object
-})
 
 setValidity("SnpSetIllumina", function(object) {
   assayDataValidMembers(assayData(object), c("call", "callProbability"))
@@ -75,12 +52,12 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
     outarr[rownames(y),colnames(y)]<-y
     outarr
   }
-  storage.mode <- storageMode(x)
-  nmfunc <- assayDataElementNames
+  storMode <- storageMode(x)
+  nmfunc <- function(es) if (storageMode(es) == "list") names(assayData(es)) else ls(assayData(es))
 
-  if (storageMode(y) != storage.mode)
+  if (storageMode(y) != storMode)
     stop(paste("assayData must have same storage, but are ",
-               storage.mode, ", ", storageMode(y), sep=""))
+               storMode, ", ", storageMode(y), sep=""))
   if (length(nmfunc(x)) != length(nmfunc(y)))
     stop("assayData have different numbers of elements:\n\t",
          paste(nmfunc(x), collapse=" "), "\n\t",
@@ -96,7 +73,7 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
   x
 }
 
-.mergePhenodata<-function(x , y, samples) {
+.mergeAnnotateddata<-function(x , y, samples) {
   variables<-union(colnames(pData(x)),colnames(pData(y)))
   outarr<-array(data=NA,dim=c(length(samples),length(variables)),dimnames=list(samples,variables))
   outarr[sampleNames(y),colnames(pData(y))]<-as.matrix(pData(y))
@@ -110,12 +87,15 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
   new("AnnotatedDataFrame", data=pd, varMetadata=vd)
 }
 
-.mergeReporterInfo<-function(x, y, reporters) {
+.mergefeatureData<-function(x, y, features) {
+	## first do data
   ## merge here will reproduce rows
-  if (dim(x)[2] == dim(y)[2] && all(names(x)==names(y)))
-     ri <- rbind(x, y)
+  xd<-pData(x)
+  yd<-pData(y)
+  if (dim(xd)[2] == dim(yd)[2] && all(names(xd)==names(yd)))
+     ri <- rbind(xd, yd)
   else {
-     alln <- union(nx <- names(dx <- x), ny <- names(dy <- y))
+     alln <- union(nx <- names(dx <- xd), ny <- names(dy <- yd))
      if (length(xx <- setdiff(alln,nx))>0)
         for (i in 1:length(xx))
            dx[[ xx[i] ]] <- NA
@@ -124,7 +104,10 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
            dy[[ xx[i] ]] <- NA
      ri <- rbind(dx,dy)
   }
-  ri[reporters,]
+  ri<-ri[features,]
+  # varMetadata
+  ld<-c(as.character(varMetadata(x)$labelDescription),as.character(varMetadata(y)$labelDescription))
+  rn<-c(rownames(varMetadata(x)),rownames(varMetadata(y)))
 }
 
 
@@ -138,9 +121,9 @@ setMethod("combine", c("SnpSetIllumina", "SnpSetIllumina"), function(x, y, ...) 
   newdimnames<-list(union(featureNames(x),featureNames(y)),union(sampleNames(x),sampleNames(y)))
   x <- .mergeAssayData(x, y, newdimnames)
   # a bit of a hack to only keep the union, and discard double entries
-  phenoData(x) <- .mergePhenodata(x, y, newdimnames[[2]])
+  phenoData(x) <- .mergeAnnotateddata(x, y, newdimnames[[2]])
   experimentData(x) <- combine(experimentData(x),experimentData(y))
-  reporterInfo(x)<-.mergeReporterInfo(reporterInfo(x), reporterInfo(y), newdimnames[[1]])
+  featureData(x)<-.mergeAnnotateddata(featureData(x), featureData(y), newdimnames[[1]])
     
   ## annotation -- constant
   if (any(annotation(x) != annotation(y))) {
@@ -268,7 +251,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
   }
   new("SnpSetIllumina",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, call=GenCall, callProbability=GenScore, G=G, R=R,
-             reporterInfo=SNPinfo,storage.mode="list")
+             featureData=new("AnnotatedDataFrame",SNPinfo,data.frame(labelDescription=colnames(SNPinfo),row.names=colnames(SNPinfo))),storage.mode="list")
 }
 
 getExperiments <- function(file="experiments.txt",path=NULL)

@@ -28,7 +28,7 @@
      \code{callscore} are used.}
    \item{useAll}{logical. If \code{TRUE} then all probes in the dataset are 
      eligible as the invariant set, else only the heterozygous SNPs}
-   \item{subsample}{factor or column name in \code{reporterInfo} slot, the levels 
+   \item{subsample}{factor or column name in \code{featureData} slot, the levels 
     of the factor are treated separately}
 }
 

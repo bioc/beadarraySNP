@@ -3,10 +3,10 @@ import(tools, Biobase)
 exportClasses(SnpSetIllumina, QCIllumina)
 
 exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featureNames, 
-             ncol, pData, phenoData, sampleNames, samples, reporterInfo,
+             ncol, pData, phenoData, sampleNames, samples, featureData,
              "annotation<-", "description<-", "experimentData<-", "exprs<-", 
              "featureNames<-", "geneNames<-", "pData<-",
-             "phenoData<-", "sampleNames<-", "assayData<-", "reporterInfo<-",
+             "phenoData<-", "sampleNames<-", "assayData<-", "featureData<-",
              dim, assayData, reporterNames, initialize,
 						 "arrayType<-", "arrayID<-", arrayType, arrayID,
 						 plotQC, reportSamplePanelQC )

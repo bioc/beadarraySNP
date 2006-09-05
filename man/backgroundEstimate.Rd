@@ -19,7 +19,7 @@
   \item{maxmode}{numeric, maximum intensity for mode for \code{method="mode"}}
   \item{bincount}{numeric, for \code{method="intmin"} , see details}
   \item{maxangle}{numeric in radians, maximum theta for mode for \code{method="anglemode"} }
-  \item{subsample}{factor or column name in \code{reporterInfo} slot}
+  \item{subsample}{factor or column name in \code{featureData} slot}
 }
 
 \details{

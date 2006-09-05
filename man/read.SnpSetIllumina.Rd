@@ -23,8 +23,8 @@
      intensity data files, defaults to path of samplesheet}
    \item{reportfile}{a character string for the name of BeadStudio reportfile}
    \item{briefOPAinfo}{logical, if \code{TRUE} then only the SNP name, Illumi code, 
-     chromosome and basepair position are put into the \code{reporterInfo} slot of
-     the result, else all information from the OPA file is put into the \code{reporterInfo}
+     chromosome and basepair position are put into the \code{featureData} slot of
+     the result, else all information from the OPA file is put into the \code{featureData}
      slot}
    \item{verbose}{logical, if \code{TRUE} then some extra information is given 
      during the import}
@@ -42,7 +42,7 @@
   experiments. The contents of the sample sheet are put into the phenoData slot. 
 	Also the OPA definition file containing SNP annotation should be available, 
 	these files are provided by Illumina. Columns \code{'IllCode'}, \code{'CHR'}, 
-	and \code{'MapInfo'} are put into the \code{reporterInfo} slot.
+	and \code{'MapInfo'} are put into the \code{featureData} slot.
   
   In order to process experiments that were genotyped using the GenCall software, 
 	the arrays should be scanned with the setting \code{<SaveTextFiles>true</SaveTextFiles>} 
@@ -65,7 +65,7 @@
 	rows and columns in the experimental data, \code{'GC Score'} is put in the 
 	\code{callProbability} matrix, \code{'Allele1 - AB'} and \code{'Allele2 - AB'} 
 	are combined into the \code{call} matrix, \code{'GT Score'} is added to the 
-	\code{reporterInfo} slot, \code{'X Raw'} is put in the \code{R} matrix and 
+	\code{featureData} slot, \code{'X Raw'} is put in the \code{R} matrix and 
 	\code{'Y Raw'} in the \code{G} matrix. Other columns in the report file are 
 	added as matrices in the \code{assayData} slot.
   

@@ -85,7 +85,9 @@ slot of the object. If a \Rfunarg{NorTum} and/or \Rfunarg{Gender} column is in t
 <<Phenodata, results=hide>>=
 pd<-coerce(read.phenoData(paste(datadir,"targets.txt",sep="/"),sep="\t"),new("AnnotatedDataFrame"))
 pData(SNPdata)<-cbind(pData(SNPdata),pData(pd))
-varMetadata(SNPdata) <- rbind(varMetadata(SNPdata),varMetadata(pd))
+ld<-c(as.character(varMetadata(SNPdata)$labelDescription),as.character(varMetadata(pd)$labelDescription))
+rn<-c(rownames(varMetadata(SNPdata)),rownames(varMetadata(pd)))
+varMetadata(SNPdata) <- data.frame(labelDescription=ld,row.names=rn)
 @
 
 \section{Quality control}
@@ -141,7 +143,7 @@ Although the OPA panels contain distinct chromosomes, also a few spurious SNPs o
 other chromosomes are in it. We first select the probes that are located on the 
 chromosomes for this OPA panel.
 <<reporting,results=hide, fig=TRUE>>=
-SNPnrm<-SNPnrm[reporterInfo(SNPnrm)$CHR %in% c("4","16","17","18","19","20","X","Y"),]
+SNPnrm<-SNPnrm[featureData(SNPnrm)$CHR %in% c("4","16","17","18","19","20","X","Y"),]
 reportSamplesSmoothCopyNumber(SNPnrm,normalizedTo=2,smooth.lambda=4)
 @
 

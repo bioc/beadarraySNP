@@ -14,7 +14,7 @@
 \arguments{
    \item{object}{\code{object} class SnpSetIllumina}
    \item{method}{\code{method} type of normalization}
-   \item{subsample}{\code{subsample} factor or column name in \code{reporterInfo} slot}
+   \item{subsample}{\code{subsample} factor or column name in \code{featureData} slot}
 }
 
 \details{
