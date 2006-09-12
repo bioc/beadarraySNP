@@ -184,15 +184,19 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       # drop data that has no rs-codes
       colname<-paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_")
       if (verbose) cat(colname)
-      GenCall<-cbind(GenCall,impGenCall[,colname])
-      GenScore<-cbind(GenScore,impGenScore[,colname])
-      sampledata<-read.table(file.path(rawdatapath,paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".csv",sep="")),header=TRUE,sep=",",row.names=1,as.is=TRUE)
-      sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
-      G<-cbind(G,sampledata[,"Mean.GRN"])
-      R<-cbind(R,sampledata[,"Mean.RED"])
-      GDev<-cbind(GDev,sampledata[,"Dev.GRN"])
-      RDev<-cbind(RDev,sampledata[,"Dev.RED"])
-      samples[sample,"validn"]<-sum(!is.na(sampledata[,"Mean.GRN"]))
+      if colname %in% colnames(impGenCall) {
+        GenCall<-cbind(GenCall,impGenCall[,colname])
+        GenScore<-cbind(GenScore,impGenScore[,colname])
+        sampledata<-read.table(file.path(rawdatapath,paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".csv",sep="")),header=TRUE,sep=",",row.names=1,as.is=TRUE)
+        sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
+        G<-cbind(G,sampledata[,"Mean.GRN"])
+        R<-cbind(R,sampledata[,"Mean.RED"])
+        GDev<-cbind(GDev,sampledata[,"Dev.GRN"])
+        RDev<-cbind(RDev,sampledata[,"Dev.RED"])
+        samples[sample,"validn"]<-sum(!is.na(sampledata[,"Mean.GRN"]))
+      } else {
+        warning(paste("Sample",rownames(samples)[sample],"is defined in samplesheet, but is not in the reportfile"))
+      }
     }
     if (verbose) cat("\n")
     # set all names
