@@ -7,6 +7,7 @@ exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featur
              "annotation<-", "description<-", "experimentData<-", "exprs<-", 
              "featureNames<-", "geneNames<-", "pData<-",
              "phenoData<-", "sampleNames<-", "assayData<-", "featureData<-",
+             reporterInfo,"reporterInfo<-",
              dim, assayData, reporterNames, initialize,
 						 "arrayType<-", "arrayID<-", arrayType, arrayID,
 						 plotQC, reportSamplePanelQC )

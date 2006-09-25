@@ -35,6 +35,13 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
   assayDataElementReplace(object, "call", value)
 })
 
+setMethod("reporterInfo", c("SnpSetIllumina"), function(object) pData(featureData(object)))
+
+setReplaceMethod("reporterInfo", c("SnpSetIllumina", "data.frame"), function(object, value) {
+  pData(featureData(object))<- value
+})
+
+
 .mergeAssayData<-function(x, y, newdimnames) {
   # this is derived from assayData combine method
   # differences:

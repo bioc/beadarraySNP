@@ -4,6 +4,8 @@
 \alias{SnpSetIllumina}
 \alias{SnpSetIllumina-class}
 \alias{exprs<-,SnpSetIllumina,matrix-method}
+\alias{reporterInfo,SnpSetIllumina-method}
+\alias{reporterInfo<-,SnpSetIllumina,matrix-method}
 \alias{exprs,SnpSetIllumina-method}
 \alias{[,SnpSetIllumina-method}
 \alias{initialize,SnpSetIllumina-method}
@@ -82,6 +84,8 @@
        slot.}
      \item{\code{combine(SnpSetIllumina,SnpSetIllumina)}:}{performs \code{union}-like 
 		   combination in both dimensions of SnpSetIllumina objects}
+     \item{\code{reporterInfo(SnpSetIllumina)}, \code{reporterInfo(SnpSetIllumina,matrix)<-}}{Access and
+       set the \code{pData} in the featureData slot}
   }
   
    Derived from \code{\link[Biobase:eSet]{eSet}}:
@@ -100,7 +104,7 @@
      \item{\code{annotation(SnpSetIllumina)}, \code{annotation(SnpSetIllumina,value)<-}}{See \code{\link[Biobase:eSet]{eSet}}}
      \item{\code{storageMode(eSet)}, \code{storageMode(eSet,character)<-}:}{See \code{\link[Biobase:eSet]{eSet}}}
      \item{\code{reporterNames(SnpSetIllumina)}, \code{reporterNames(SnpSetIllumina,value)<-}:}{DEPRECATED}
-     \item{\code{featureData(SnpSetIllumina)}, \code{featureData(SnpSetIllumina,data.frame)<-}}{See \code{\link[Biobase:eSet]{eSet}}}
+     \item{\code{featureData(SnpSetIllumina)}, \code{featureData(SnpSetIllumina,AnnotatedDataFrame)<-}}{See \code{\link[Biobase:eSet]{eSet}}}
      \item{\code{object[(index)}:}{Conducts subsetting of matrices and phenoData and featureData components }
   }
 
