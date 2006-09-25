@@ -74,16 +74,27 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
 }
 
 .mergeAnnotateddata<-function(x , y, samples) {
-  variables<-union(colnames(pData(x)),colnames(pData(y)))
-  outarr<-array(data=NA,dim=c(length(samples),length(variables)),dimnames=list(samples,variables))
-  outarr[sampleNames(y),colnames(pData(y))]<-as.matrix(pData(y))
-  outarr[sampleNames(x),colnames(pData(x))]<-as.matrix(pData(x))
-  pd<-data.frame(outarr)
+  allvariables<-union(colnames(pData(x)),colnames(pData(y)))
+  commonvariables<-intersect(colnames(pData(x)),colnames(pData(y)))
+  yexclusiverows<-setdiff(rownames(pData(y)),rownames(pData(x)))
+  # start with core data.frame, and build up
+  outarr<-rbind(pData(x)[,commonvariables],pData(y)[yexclusiverows,commonvariables])
+  xonly<-setdiff(colnames(pData(x)),commonvariables)
+  if (length(xonly)>0) {
+    outarr<-cbind(outarr,rbind(pData(x)[,xonly],array(NA,dim=c(length(yexclusiverows),length(xonly)),
+            dimnames=list(yexclusiverows,xonly))))
+  }
+  yonly<-setdiff(colnames(pData(y)),commonvariables)
+  if (length(yonly)>0) {
+    outarr<-cbind(outarr,rbind(array(NA,dim=c(dim(x)[1],length(yonly)),dimnames=list(featureNames(x),yonly)
+       ),pData(y)[yexclusiverows,yonly]))
+  }
+  pd<-outarr[samples,]
   vardescs<-union(colnames(varMetadata(x)),colnames(varMetadata(y)))
-  outarr<-array(data=NA,dim=c(length(variables),length(vardescs)),dimnames=list(variables,vardescs))
+  outarr<-array(data=NA,dim=c(length(allvariables),length(vardescs)),dimnames=list(allvariables,vardescs))
   outarr[colnames(pData(y)),colnames(varMetadata(y))]<-as.matrix(varMetadata(y))
   outarr[colnames(pData(x)),colnames(varMetadata(x))]<-as.matrix(varMetadata(x))
-  vd<-data.frame(outarr)
+  vd<-data.frame(outarr[colnames(pd),])
   new("AnnotatedDataFrame", data=pd, varMetadata=vd)
 }
 

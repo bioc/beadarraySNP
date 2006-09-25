@@ -1,7 +1,7 @@
 Package: beadarraySNP
 Type: Package
 Title: Normalization and reporting of Illumina SNP bead arrays
-Version: 0.9.8
+Version: 0.99.9
 Date: 2006-09-05
 Author: Jan Oosting
 Maintainer: Jan Oosting <j.oosting@lumc.nl>
