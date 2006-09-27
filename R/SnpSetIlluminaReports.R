@@ -74,29 +74,39 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
       for (chrom in chroms) {
         probes<-numericCHR(pData(featureData(snpdata))[,"CHR"]) == chrom
         if (any(apply(intensities[probes,samples,drop=FALSE],2,function(x) sum(!is.na(x))>10))) {
-          plot(c(0,lengthChromosome(chrom,"bases")),c(1,3),main=paste(group,"Chromosome",characterCHR(chrom)),type="n",ylab="intensity",xlab="",xaxt="n")
+          plot(c(0,max(lengthChromosome(chrom,"bases"),pData(featureData(snpdata))[probes,"MapInfo"])),c(1,3),main=paste(group,"Chromosome",characterCHR(chrom)),type="n",ylab="intensity",xlab="",xaxt="n")
           paintCytobands(chrom,pos=c(0,ideo.ypos),units="bases",width=ideo.width,legend=FALSE,bleach=ideo.bleach)
-          plotSmoothed(intensities[probes,samples,drop=FALSE],pData(featureData(snpdata))[probes,"MapInfo"],smooth.lambda=smooth.lambda,plotnew=FALSE,...)
+          plotSmoothed(intensities[probes,samples,drop=FALSE],pData(featureData(snpdata))[probes,"MapInfo"],smooth.lambda=smooth.lambda,plotnew=FALSE,cols=sample.colors,...)
           legend("topleft",samples,col=1:length(samples)+1,lty=1,lwd=2,ncol=length(samples))
           if (plotLOH!="none") {
-            probeNames<-rownames(snpdata)[probes]
-            chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[i1]])
+            probeNames<-featureNames(snpdata)[probes]
+            markerbase<-par("yaxp")[1]
+            markerinterval<-(normalizedTo-markerbase)/20
             if (plotLOH=="marker") {
-              LOH<-probeNames[chromhet>20]
-              #if (length(LOH)>0) points(dchrompos[LOH,2],dchrompos[LOH,1]-0.3-(i1*0.05),pch="-",col=sample.colors[i1])
+              for (samp in 1:length(samples)) {
+                chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[samp]])
+                LOH<-probeNames[chromhet>20]
+                if (length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],markerbase+(samp*markerinterval),pch="-",col=sample.colors[samp])
+              }
             }
             if (plotLOH=="line") {
-              #lines(dchrompos[probes,2],dchrompos[probes,1]+scaleto(chromhet,c(10,40),c(0.1,-0.4)),col=sample.colors[i1],lty=2)
+              for (samp in 1:length(samples)) {
+                chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[samp]])
+                lines(pData(featureData(snpdata))[probes,"MapInfo"],scaleto(chromhet,c(10,40),c(normalizedTo,markerbase)),col=sample.colors[samp],lty=2)
+              }
             }
-            if (plotLOH=="NorTum" && pData(snpdata)[samples[i1],"NorTum"]=="T") {
+            if (plotLOH=="NorTum") {
               ## check availability of normal to compare with
               n1<-grep("N",as.character(pData(snpdata)[samples,"NorTum"]))
-              if (length(n1)>0) {
-                compGenotype<-compareGenotypes(assayData(snpdata)[["call"]][probes,samples[i1]],assayData(snpdata)[["call"]][probes,samples[n1[1]]])
-                LOH<-probeNames[compGenotype=="l"] # loss 
-                if(length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],0.4-(i1*0.05),pch="'",col=sample.colors[i1])
-                LOH<-probeNames[compGenotype=="i"] # heterozygous normal)
-                if(length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],0.4-(i1*0.05),pch="|",col=sample.colors[i1])
+              t1<-samples[-n1]
+              if (length(n1)>0 & length(t1)>0) { # at least 1 normal and 1 tumor sample in group
+                for (tum in 1:length(t1)) {
+                  compGenotype<-compareGenotypes(assayData(snpdata)[["call"]][probes,t1[tum]],assayData(snpdata)[["call"]][probes,samples[n1[1]]])
+                  LOH<-probeNames[compGenotype=="l"] # loss
+                  if(length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],rep(markerbase+(tum*markerinterval),length(LOH)),pch="|",col=sample.colors[match(t1[tum],samples)])
+                  LOH<-probeNames[compGenotype=="i"] # heterozygous normal)
+                  if(length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],rep(markerbase+(tum*markerinterval),length(LOH)),pch="'",col=sample.colors[match(t1[tum],samples)])
+                }
               }
             }
           }

@@ -5,7 +5,7 @@
 \alias{SnpSetIllumina-class}
 \alias{exprs<-,SnpSetIllumina,matrix-method}
 \alias{reporterInfo,SnpSetIllumina-method}
-\alias{reporterInfo<-,SnpSetIllumina,matrix-method}
+\alias{reporterInfo<-,SnpSetIllumina,data.frame-method}
 \alias{exprs,SnpSetIllumina-method}
 \alias{[,SnpSetIllumina-method}
 \alias{initialize,SnpSetIllumina-method}
