@@ -123,6 +123,50 @@ pdfChromosomesSmoothCopyNumber<-function(object,filename,...) {
 	dev.off() 
 }
 
+getMidMaxIdx<-function(groups){
+  groups<-as.character(groups)
+  lvls<-levels(factor(groups))
+  midpos<-NULL
+  maxpos<-NULL
+  for(lvl in 1:length(lvls)) {
+    midpos[lvl]<-mean(grep(paste("^",lvls[lvl],"$",sep=""),groups))-0.5
+    maxpos[lvl]<-max(grep(paste("^",lvls[lvl],"$",sep=""),groups))
+  }
+  data.frame(midpos,maxpos,row.names=lvls)
+}
+
+reportGenomeGainLossLOH<-function(object,grouping,segment=101,...) {
+  upcolor<-"red"
+  downcolor<-"blue"
+  lohcolor<-"grey"
+  ind<-order(numericCHR(reporterInfo(object)$CHR),reporterInfo(object)$MapInfo)
+  object<-object[ind,]
+  # determine gained and lost probes
+  plot(0,xlim=c(0,ncol(object)),ylim=c(nrow(object),0),type="n",xaxt="n",yaxt="n",xlab="tumor types",ylab="chromosome")
+  par(usr=c(0,ncol(object),nrow(object),0))
+  for (smp in 1:ncol(object)) {
+    regions<-getChangedRegions(assayData(object)$intensity[,smp],segment=segment,...)
+    if (!is.null(regions)) rect(smp-1,regions[,"start"]-1,smp-0.5,regions[,"end"],col=ifelse(regions[,"up"],upcolor,downcolor),border=NA)
+    loh<-which(assayData(object)$loh[,smp])
+    rect(smp-0.5,loh-1,smp,loh,col=lohcolor,border=NA)
+    #
+    #pLOH<-ifelse(assayData(object)$call[,smp]=="H",(1-assayData(object)$GRS[,smp]),1)
+    #het.nrm<-which(assayData(object)$nor.gt[,smp]=="H") # & assayData(object)$nor.qs[,smp]>0.9
+    #points(smp-0.5*pLOH[het.nrm],het.nrm,pch=".")
+    #points(smp-0.5*assayData(object)$nor.qs[het.nrm,smp],het.nrm,pch=".",col="cyan")
+
+  }
+  abline(v=1:(ncol(object)-1),col="grey")
+  if (!missing(grouping)) {
+    xax<-getMidMaxIdx(tum.groups)
+    axis(3,xax$midpos,row.names(xax))
+    abline(v=xax$maxpos)
+  }
+  yax<-getMidMaxIdx(reporterInfo(object)$CHR)
+  axis(2,yax$midpos,row.names(yax))
+  abline(h=yax$maxpos)
+}
+
 
 plotGroupZygosity <- function(Green,Red,GenCall,Grouping,NorTum,NormalizedTo=1,...) {
   # Plot alleles. Green to X-axis, Red to Y-axis

@@ -39,9 +39,9 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
   names(NorTum)<-sampleNames(object)
 	#
   hetSNPs<-heterozygousSNPs(object,...)
-	loh<-matrix(FALSE,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(object))
-	nor.gt<-matrix("",nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(object))
-	nor.qs<-matrix(0,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(object))
+	loh<-matrix(FALSE,nrow=nrow(object),ncol=ncol(object),dimnames=list(featureNames(object),sampleNames(object)))
+	nor.gt<-matrix("",nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(loh))
+	nor.qs<-matrix(0,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(loh))
 	for (pageID in levels(factor(grouping))) {
 	  samples <- sampleNames(object)[grouping == pageID]
 	  n1 <- which(NorTum[samples])
@@ -50,16 +50,16 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
 	  if (length(n1)>0 & length(t1)>0) { # at least 1 normal and 1 tumor sample in group
 	    for (tum in 1:length(t1)) {
 	      loh[,t1[tum]]<-hetSNPs[,n1] & !hetSNPs[,t1[tum]]
-	      nor.gt[,t1[tum]]<-assayData(object)[["call"]][,n1]
-	      nor.qs[,t1[tum]]<-assayData(object)[["GSR"]][,n1]
+	      nor.gt[,t1[tum]]<-hetSNPs[,n1]
 	    }
 	  }
 	}
 	assayData(object)[["loh"]]<-loh
 	assayData(object)[["nor.gt"]]<-nor.gt
-	assayData(object)[["nor.qs"]]<-nor.qs
 	object
 }
+
+
 
   
 heterozygosity <-function(genotype,decay=0.8,threshold=0.1) {

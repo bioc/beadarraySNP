@@ -153,8 +153,7 @@ setMethod("combine", c("SnpSetIllumina", "SnpSetIllumina"), function(x, y, ...) 
 })
 
 setMethod("calculateGSR", "SnpSetIllumina", function(object) {
-  assayData(object)[["GSR"]]<-sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/")
-  object
+  assayDataElementReplace(object,"GSR",sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/"))
 })
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE) {
