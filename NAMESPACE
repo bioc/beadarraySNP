@@ -10,7 +10,8 @@ exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featur
              reporterInfo,"reporterInfo<-",
              dim, assayData, reporterNames, initialize,
 						 "arrayType<-", "arrayID<-", arrayType, arrayID,
-						 plotQC, reportSamplePanelQC )
+						 plotQC, reportSamplePanelQC,
+						 calculateGSR )
 
 export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        normalizeBetweenAlleles.SNP, normalizeWithinArrays.SNP,

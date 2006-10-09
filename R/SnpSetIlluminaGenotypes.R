@@ -12,9 +12,13 @@ heterozygousSNPs<-function(object,
     if (!is.null(assayData(object)[["callProbability"]])){
       GenScore<-assayData(object)[["callProbability"]]
       if (relative) {
-        if ("GTS" %in% varLabels(featureData(object)))
-          GenScore<-sweep(GenScore,1,pData(featureData(object))[,"GTS"],"/")
-        else warning("GenTrainScore is missing; heterozygous SNPs derived from absolute quality score")
+        if ("GSR" %in% assayDataElementNames(object)) {
+          GenScore<-assayData(object)[["GSR"]]
+        } else {
+	        if ("GTS" %in% varLabels(featureData(object)))
+	          GenScore<-sweep(GenScore,1,pData(featureData(object))[,"GTS"],"/")
+	        else warning("GenTrainScore is missing; heterozygous SNPs derived from absolute quality score")
+        }
       }
       if (percentile) {
         threshold.col<-apply(GenScore,2,quantile,probs=threshold,na.rm=TRUE)
@@ -25,6 +29,38 @@ heterozygousSNPs<-function(object,
   }
   heterozyg
 }
+
+calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
+  if (length(NorTum)!=ncol(object)) {
+    if (is.null(NorTum) | !(NorTum %in% colnames(pData(object)))) stop("Invalid NorTum argument")
+    else NorTum<-pData(object)[,NorTum]
+  }
+  if (!is.logical(NorTum)) NorTum<-NorTum=="N"
+  names(NorTum)<-sampleNames(object)
+	#
+  hetSNPs<-heterozygousSNPs(object,...)
+	loh<-matrix(FALSE,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(object))
+	nor.gt<-matrix("",nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(object))
+	nor.qs<-matrix(0,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(object))
+	for (pageID in levels(factor(grouping))) {
+	  samples <- sampleNames(object)[grouping == pageID]
+	  n1 <- which(NorTum[samples])
+	  t1<-samples[-n1]
+	  n1<-samples[n1[1]]
+	  if (length(n1)>0 & length(t1)>0) { # at least 1 normal and 1 tumor sample in group
+	    for (tum in 1:length(t1)) {
+	      loh[,t1[tum]]<-hetSNPs[,n1] & !hetSNPs[,t1[tum]]
+	      nor.gt[,t1[tum]]<-assayData(object)[["call"]][,n1]
+	      nor.qs[,t1[tum]]<-assayData(object)[["GSR"]][,n1]
+	    }
+	  }
+	}
+	assayData(object)[["loh"]]<-loh
+	assayData(object)[["nor.gt"]]<-nor.gt
+	assayData(object)[["nor.qs"]]<-nor.qs
+	object
+}
+
   
 heterozygosity <-function(genotype,decay=0.8,threshold=0.1) {
   # find stretches of homozygosity
