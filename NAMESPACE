@@ -21,4 +21,5 @@ export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        pdfSamplesSmoothCopyNumber, pdfChromosomesSmoothCopyNumber,
        removeLowQualityProbes, removeLowQualitySamples,
 			 calculateQCarray, pdfQC, smoothed.intensity, renameOPA,
-       calculateLOH, reportGenomeGainLossLOH )
+       calculateLOH, reportGenomeGainLossLOH, pdfChromosomeGainLossLOH,
+       reportChromosomeGainLossLOH)
