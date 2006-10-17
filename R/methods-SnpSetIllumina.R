@@ -299,7 +299,7 @@ IlluminaGetOPAinfo<-function(OPAname,OPAinfoPath,brief=TRUE) {
   # OPA : linkage panel
   # snpid : international snp id rsxxxxxx (used as row names)
   # IllCode : numeric within linkage panel to connect to snpid
-	OPAfile<-list.files(OPAinfoPath,pattern=paste(OPAname,".*\.opa$",sep=""),full.names=TRUE)
+	OPAfile<-list.files(OPAinfoPath,pattern=paste(OPAname,".*\\.opa$",sep=""),full.names=TRUE)
 	if (length(OPAfile) != 1) stop(paste("OPA info file could not be (uniquely) identified for",OPAset))
 	# import it to the database
   firstfield <- scan(OPAfile, what = "", sep = ",", flush = TRUE, quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
@@ -323,7 +323,7 @@ IlluminaGetOPAinfo<-function(OPAname,OPAinfoPath,brief=TRUE) {
 IlluminaGetGencalls<- function(path,OPAname) {
   gencallfile<-list.files(path,pattern=paste(OPAname,".*LocusByDNA.*csv",sep=""),full.names=TRUE)
   # exclude some common report types *DNA_Report.csv/*Locus_Report.csv/*Final.csv
-  exclude<-grep("DNA_Report\.csv|Locus_Report\.csv|Final\.csv",gencallfile)
+  exclude<-grep("DNA_Report\\.csv|Locus_Report\\.csv|Final\\.csv",gencallfile)
   if (length(exclude)>0) gencallfile<-gencallfile[-exclude]
   if (length(gencallfile)==1) {
     firstfield <- scan(gencallfile, what = "", sep = ",", flush = TRUE,quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
