@@ -136,17 +136,24 @@ getMidMaxIdx<-function(groups){
 }
 
 reportGenomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance.min,
-  upcolor="red",downcolor="blue",lohcolor="grey",lohwidth=1,segment=101,...) {
+  upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",lohwidth=1,segment=101,
+  orientation=c("V","H"),...) {
+  orientation<-match.arg(orientation)
   ind<-order(numericCHR(reporterInfo(object)$CHR),reporterInfo(object)$MapInfo)
   object<-object[ind,]
   if (missing(distance.min)) distance.min=1e+9
   
   # determine gained and lost probes
-  plot(0,xlim=c(0,ncol(object)),ylim=c(nrow(object),0),type="n",xaxt="n",yaxt="n",xlab="",ylab="chromosome")
+  plot(0,xlim=c(0,ncol(object)),ylim=c(nrow(object),0),type="n",xaxt="n",yaxt="n",xlab="",ylab="")
   par(usr=c(0,ncol(object),nrow(object),0))
   for (smp in 1:ncol(object)) {
     regions<-getChangedRegions(assayData(object)$intensity[,smp],segment=segment,...)
     if (!is.null(regions)) rect(smp-1,regions[,"start"]-1,smp-0.5,regions[,"end"],col=ifelse(regions[,"up"],upcolor,downcolor),border=NA)
+    het<-which(assayData(object)$call[,smp]=="H")
+    if (length(het)>0){
+      rect(smp-0.25,het-1-lohwidth,smp,het+lohwidth,col=hetcolor,border=NA)
+    }
+
     loh<-which(assayData(object)$loh[,smp])
     if (length(loh)>0){
       position<-pData(featureData(object))$MapInfo[loh]
@@ -168,16 +175,18 @@ reportGenomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance
     axis(3,xax$midpos,row.names(xax))
     abline(v=xax$maxpos)
   }
+
   if (plotSampleNames) {
     axis(1,(1:ncol(object))-0.5,sampleNames(object),las=2,cex.axis=0.6)
   }
   yax<-getMidMaxIdx(reporterInfo(object)$CHR)
   axis(2,yax$midpos,row.names(yax))
   abline(h=yax$maxpos)
+
 }
 
 reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance.min,
-  upcolor="red",downcolor="blue",lohcolor="grey",segment=101,proportion=0.2,plotLOH=TRUE,...) {
+  upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",segment=101,proportion=0.2,plotLOH=TRUE,...) {
   ind<-order(numericCHR(reporterInfo(object)$CHR),reporterInfo(object)$MapInfo)
   if (missing(distance.min)) distance.min=1e+9
   object<-object[ind,]
@@ -200,8 +209,12 @@ reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,dist
       if (!is.null(updown)) {
         rect(smp-1,lengthchrom-updown[,"start"],smp-1+cn.w,lengthchrom-updown[,"end"],col=ifelse(updown[,"up"],upcolor,downcolor),border=NA)
       }
+      probe.w<-lengthchrom/1000
+      het<-which(assayData(object)$call[,smp]=="H")
+      if (length(het)>0){
+        rect(smp-0.5,lengthchrom-reporterInfo(object)[het,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(object)[het,"MapInfo"]+probe.w,col=lohcolor,border=NA)
+      }
       if (plotLOH) {
-        probe.w<-lengthchrom/sum(probes)/2
         loh<-featureNames(object)[assayData(object)$loh[,smp] & probes]
         if (length(loh)>0) {
           position<-pData(featureData(object))[loh,"MapInfo"]
