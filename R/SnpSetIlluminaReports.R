@@ -210,11 +210,12 @@ reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,dist
         rect(smp-1,lengthchrom-updown[,"start"],smp-1+cn.w,lengthchrom-updown[,"end"],col=ifelse(updown[,"up"],upcolor,downcolor),border=NA)
       }
       probe.w<-lengthchrom/1000
-      het<-which(assayData(object)$call[,smp]=="H")
-      if (length(het)>0){
-        rect(smp-0.5,lengthchrom-reporterInfo(object)[het,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(object)[het,"MapInfo"]+probe.w,col=lohcolor,border=NA)
-      }
       if (plotLOH) {
+        gt<-assayData(object)$call[probes,smp]
+        het<-names(gt)[gt=="H"]
+        if (length(het)>0){
+          rect(smp-0.25,lengthchrom-reporterInfo(object)[het,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(object)[het,"MapInfo"]+probe.w,col=hetcolor,border=NA)
+        }
         loh<-featureNames(object)[assayData(object)$loh[,smp] & probes]
         if (length(loh)>0) {
           position<-pData(featureData(object))[loh,"MapInfo"]
