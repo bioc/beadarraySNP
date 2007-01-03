@@ -186,11 +186,12 @@ reportGenomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance
 }
 
 reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance.min,
-  upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",segment=101,proportion=0.2,plotLOH=TRUE,...) {
+  upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",proportion=0.2,plotLOH=TRUE,
+  interval=0.8,normalized.to=2,smooth.lambda=4,segment=101,...) {
   ind<-order(numericCHR(reporterInfo(object)$CHR),reporterInfo(object)$MapInfo)
   if (missing(distance.min)) distance.min=1e+9
   object<-object[ind,]
-  xmin<-ncol(object)-ncol(object)/(1-proportion)
+  xmin<- -ncol(object)*proportion
   cb.x<-xmin*0.6
   cb.w<- -xmin*0.2
   if (plotLOH) cn.w<-0.5 else cn.w<-1
@@ -205,7 +206,7 @@ reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,dist
     paintCytobands(chrom,c(cb.x,lengthchrom),units="bases",width=cb.w,orientation="v",legend=TRUE)
     for (smp in 1:ncol(object)) {
       updown<-getChangedRegions(assayData(object)$intensity[probes,smp],reporterInfo(object)$MapInfo[probes],
-                                segment=segment,normalized.to=2,interval=0.8,smooth.lambda=5469/1500)
+                                segment=segment,normalized.to=normalized.to,interval=interval,smooth.lambda=smooth.lambda)
       if (!is.null(updown)) {
         rect(smp-1,lengthchrom-updown[,"start"],smp-1+cn.w,lengthchrom-updown[,"end"],col=ifelse(updown[,"up"],upcolor,downcolor),border=NA)
       }
