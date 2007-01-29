@@ -246,6 +246,27 @@ pdfChromosomeGainLossLOH<-function(pdffile,object,mfrow=par()$mfrow,mar=par()$ma
   dev.off()
 }
 
+reportGenomeIntensityPlot<-function(object,normalized.to=NULL,subsample=NULL,col="black",...) {
+  if ( !("intensity" %in% assayDataElementNames(object))) object<-RG2polar(object)
+  if (is.null(subsample)) {
+    ind<-order(numericCHR(pData(featureData(object))[,"CHR"]),pData(featureData(object))[,"MapInfo"])
+    object<-object[ind,]
+    # use chromosomes as subsamples
+    subsample<-numericCHR(pData(featureData(object))[,"CHR"])
+  } else {
+    subsample<-getSubsample(object,subsample)
+    ind<-order(subsample)
+    subsample<-subsample[ind]
+    object<-object[ind,]
+  }
+  # find boundaries between subsamples
+  vertlines<-which(subsample[-1]!=subsample[-length(subsample)])+0.5
+  for (sample in 1:length(sampleNames(object))) {
+    plot(assayData(object)[["intensity"]][,sample],col=1,pch=".",ylab="intensity",xlab="",
+         main=sampleNames(object)[sample],xaxt="n",...)
+    abline(v=vertlines)
+  }
+}
 
 
 plotGroupZygosity <- function(Green,Red,GenCall,Grouping,NorTum,NormalizedTo=1,...) {

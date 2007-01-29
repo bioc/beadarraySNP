@@ -2,9 +2,10 @@
 removeLowQualityProbes<-function(object, cutoff=0.25) {
   # disable probes that have low overall intensity, ie fraction below overal median
   if ( !("intensity" %in% assayDataElementNames(object))) object<-RG2polar(object)
-  int.med<-median(assayData(object)[["intensity"]],na.rm=TRUE)
+  probes<-numericCHR(reporterInfo(object)$CHR)>90
+  int.med<-median(assayData(object)[["intensity"]][probes,],na.rm=TRUE)
   int.probe.med<-apply(assayData(object)[["intensity"]],1,median,na.rm=TRUE)
-  probes<-int.probe.med>(int.med*cutoff)
+  probes<-int.probe.med>(int.med*cutoff) | probes
   cat(sum(!probes),"probes removed with median intensity below",int.med*cutoff,"\n")
   object[probes,]
 }
