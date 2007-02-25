@@ -1,6 +1,7 @@
 \name{pdfChromosomesSmoothCopyNumber}
 \alias{pdfChromosomesSmoothCopyNumber}
 \alias{pdfSamplesSmoothCopyNumber}
+\alias{pdfChromosomeGainLossLOH}
 
 \title{reportWrappers}
 \description{
@@ -9,6 +10,7 @@
 \usage{
 pdfChromosomesSmoothCopyNumber(object, filename, ...)
 pdfSamplesSmoothCopyNumber(object, filename, ...)
+pdfChromosomeGainLossLOH(object, filename, ...)
 }
 
 \arguments{
@@ -23,7 +25,8 @@ pdfSamplesSmoothCopyNumber(object, filename, ...)
   This function is used for its side effects
 }
 \author{ Jan Oosting}
-\seealso{ \code{\link{reportChromosomesSmoothCopyNumber}}, \code{\link{reportSamplesSmoothCopyNumber}} }
+\seealso{ \code{\link{reportChromosomesSmoothCopyNumber}}, \code{\link{reportSamplesSmoothCopyNumber}}, 
+  \code{\link{reportChromosomeGainLossLOH}} }
 \examples{
   \dontrun{data(chr17.260)}
   \dontrun{data.nrm<-standardNormalization(chr17.260)}

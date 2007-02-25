@@ -135,41 +135,41 @@ getMidMaxIdx<-function(groups){
   data.frame(midpos,maxpos,row.names=lvls)
 }
 
-reportGenomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance.min,
+reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distance.min,
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",lohwidth=1,segment=101,
   orientation=c("V","H"),...) {
   orientation<-match.arg(orientation)
-  ind<-order(numericCHR(reporterInfo(object)$CHR),reporterInfo(object)$MapInfo)
-  object<-object[ind,]
+  ind<-order(numericCHR(reporterInfo(snpdata)$CHR),reporterInfo(snpdata)$MapInfo)
+  snpdata<-snpdata[ind,]
   if (missing(distance.min)) distance.min=1e+9
   
   # determine gained and lost probes
-  plot(0,xlim=c(0,ncol(object)),ylim=c(nrow(object),0),type="n",xaxt="n",yaxt="n",xlab="",ylab="")
-  par(usr=c(0,ncol(object),nrow(object),0))
-  for (smp in 1:ncol(object)) {
-    regions<-getChangedRegions(assayData(object)$intensity[,smp],segment=segment,...)
+  plot(0,xlim=c(0,ncol(snpdata)),ylim=c(nrow(snpdata),0),type="n",xaxt="n",yaxt="n",xlab="",ylab="")
+  par(usr=c(0,ncol(snpdata),nrow(snpdata),0))
+  for (smp in 1:ncol(snpdata)) {
+    regions<-getChangedRegions(assayData(snpdata)$intensity[,smp],segment=segment,...)
     if (!is.null(regions)) rect(smp-1,regions[,"start"]-1,smp-0.5,regions[,"end"],col=ifelse(regions[,"up"],upcolor,downcolor),border=NA)
-    het<-which(assayData(object)$call[,smp]=="H")
+    het<-which(assayData(snpdata)$call[,smp]=="H")
     if (length(het)>0){
       rect(smp-0.25,het-1-lohwidth,smp,het+lohwidth,col=hetcolor,border=NA)
     }
 
-    loh<-which(assayData(object)$loh[,smp])
+    loh<-which(assayData(snpdata)$loh[,smp])
     if (length(loh)>0){
-      position<-pData(featureData(object))$MapInfo[loh]
+      position<-pData(featureData(snpdata))$MapInfo[loh]
       distance<-abs(c(position,0)-c(0,position))
       min.distance<-apply(cbind(distance[-1],distance[-length(distance)]),1,min)
       loh<-loh[min.distance<distance.min]
       if (length(loh)>0) rect(smp-0.5,loh-1-lohwidth,smp,loh+lohwidth,col=lohcolor,border=NA)
     }
     #
-    #pLOH<-ifelse(assayData(object)$call[,smp]=="H",(1-assayData(object)$GRS[,smp]),1)
-    #het.nrm<-which(assayData(object)$nor.gt[,smp]=="H") # & assayData(object)$nor.qs[,smp]>0.9
+    #pLOH<-ifelse(assayData(snpdata)$call[,smp]=="H",(1-assayData(snpdata)$GRS[,smp]),1)
+    #het.nrm<-which(assayData(snpdata)$nor.gt[,smp]=="H") # & assayData(snpdata)$nor.qs[,smp]>0.9
     #points(smp-0.5*pLOH[het.nrm],het.nrm,pch=".")
-    #points(smp-0.5*assayData(object)$nor.qs[het.nrm,smp],het.nrm,pch=".",col="cyan")
+    #points(smp-0.5*assayData(snpdata)$nor.qs[het.nrm,smp],het.nrm,pch=".",col="cyan")
 
   }
-  abline(v=1:(ncol(object)-1),col="grey")
+  abline(v=1:(ncol(snpdata)-1),col="grey")
   if (!missing(grouping)) {
     xax<-getMidMaxIdx(grouping)
     axis(3,xax$midpos,row.names(xax))
@@ -177,60 +177,60 @@ reportGenomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance
   }
 
   if (plotSampleNames) {
-    axis(1,(1:ncol(object))-0.5,sampleNames(object),las=2,cex.axis=0.6)
+    axis(1,(1:ncol(snpdata))-0.5,sampleNames(snpdata),las=2,cex.axis=0.6)
   }
-  yax<-getMidMaxIdx(reporterInfo(object)$CHR)
+  yax<-getMidMaxIdx(reporterInfo(snpdata)$CHR)
   axis(2,yax$midpos,row.names(yax))
   abline(h=yax$maxpos)
 
 }
 
-reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,distance.min,
+reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distance.min,
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",proportion=0.2,plotLOH=TRUE,
-  interval=0.8,normalized.to=2,smooth.lambda=4,segment=101,...) {
-  ind<-order(numericCHR(reporterInfo(object)$CHR),reporterInfo(object)$MapInfo)
+  segment=101,...) {
+  ind<-order(numericCHR(reporterInfo(snpdata)$CHR),reporterInfo(snpdata)$MapInfo)
   if (missing(distance.min)) distance.min=1e+9
-  object<-object[ind,]
-  xmin<- -ncol(object)*proportion
+  snpdata<-snpdata[ind,]
+  xmin<- -ncol(snpdata)*proportion
   cb.x<-xmin*0.6
   cb.w<- -xmin*0.2
   if (plotLOH) cn.w<-0.5 else cn.w<-1
   for (chrom in 1:22) {
-    probes<-reporterInfo(object)$CHR == chrom
-    lengthchrom<-max(reporterInfo(object)$MapInfo[probes],na.rm=TRUE)
-    plot(0,xlim=c(xmin,ncol(object)),ylim=c(0,lengthchrom),xlab="",ylab="",xaxt="n",yaxt="n",main=paste("chromosome",chrom),type="n")
+    probes<-reporterInfo(snpdata)$CHR == chrom
+    lengthchrom<-max(reporterInfo(snpdata)$MapInfo[probes],na.rm=TRUE)
+    plot(0,xlim=c(xmin,ncol(snpdata)),ylim=c(0,lengthchrom),xlab="",ylab="",xaxt="n",yaxt="n",main=paste("chromosome",chrom),type="n")
     myusr<-par()$usr
     myusr[1]<-xmin
-    myusr[2]<-ncol(object)
+    myusr[2]<-ncol(snpdata)
     par(usr=myusr)
     paintCytobands(chrom,c(cb.x,lengthchrom),units="bases",width=cb.w,orientation="v",legend=TRUE)
-    for (smp in 1:ncol(object)) {
-      updown<-getChangedRegions(assayData(object)$intensity[probes,smp],reporterInfo(object)$MapInfo[probes],
-                                segment=segment,normalized.to=normalized.to,interval=interval,smooth.lambda=smooth.lambda)
+    for (smp in 1:ncol(snpdata)) {
+      updown<-getChangedRegions(assayData(snpdata)$intensity[probes,smp],reporterInfo(snpdata)$MapInfo[probes],
+                                segment=segment,...)
       if (!is.null(updown)) {
         rect(smp-1,lengthchrom-updown[,"start"],smp-1+cn.w,lengthchrom-updown[,"end"],col=ifelse(updown[,"up"],upcolor,downcolor),border=NA)
       }
       probe.w<-lengthchrom/1000
       if (plotLOH) {
-        gt<-assayData(object)$call[probes,smp]
+        gt<-assayData(snpdata)$call[probes,smp]
         het<-names(gt)[gt=="H"]
         if (length(het)>0){
-          rect(smp-0.25,lengthchrom-reporterInfo(object)[het,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(object)[het,"MapInfo"]+probe.w,col=hetcolor,border=NA)
+          rect(smp-0.25,lengthchrom-reporterInfo(snpdata)[het,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(snpdata)[het,"MapInfo"]+probe.w,col=hetcolor,border=NA)
         }
-        loh<-featureNames(object)[assayData(object)$loh[,smp] & probes]
+        loh<-featureNames(snpdata)[assayData(snpdata)$loh[,smp] & probes]
         if (length(loh)>0) {
-          position<-pData(featureData(object))[loh,"MapInfo"]
+          position<-pData(featureData(snpdata))[loh,"MapInfo"]
           distance<-abs(c(position,0)-c(0,position))
           min.distance<-apply(cbind(distance[-1],distance[-length(distance)]),1,min)
           loh<-loh[min.distance<distance.min]
-          if (length(loh)>0) rect(smp-0.5,lengthchrom-reporterInfo(object)[loh,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(object)[loh,"MapInfo"]+probe.w,col=lohcolor,border=NA)
+          if (length(loh)>0) rect(smp-0.5,lengthchrom-reporterInfo(snpdata)[loh,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(snpdata)[loh,"MapInfo"]+probe.w,col=lohcolor,border=NA)
         }
       }
     }
     if (plotSampleNames) {
-      axis(1,(1:ncol(object))-0.5,sampleNames(object),las=2,cex.axis=0.6)
+      axis(1,(1:ncol(snpdata))-0.5,sampleNames(snpdata),las=2,cex.axis=0.6)
     }
-    abline(v=0:(ncol(object)-1),col="grey")
+    abline(v=0:(ncol(snpdata)-1),col="grey")
     if (!missing(grouping)) {
       xax<-getMidMaxIdx(grouping)
       axis(3,xax$midpos,row.names(xax))
@@ -239,31 +239,31 @@ reportChromosomeGainLossLOH<-function(object,grouping,plotSampleNames=FALSE,dist
   }
 }
 
-pdfChromosomeGainLossLOH<-function(pdffile,object,mfrow=par()$mfrow,mar=par()$mar,...) {
-  pdf(pdffile,width=8,height=11)
-  par(mfrow=mfrow,mar=mar)
+pdfChromosomeGainLossLOH<-function(object,filename,...) {
+  pdf(filename,paper="a4",width=7.2,height=11)
+  par(mfrow=c(4,1),mar=c(1.5,2,2,0))
   reportChromosomeGainLossLOH(object,...)
   dev.off()
 }
 
-reportGenomeIntensityPlot<-function(object,normalized.to=NULL,subsample=NULL,col="black",...) {
-  if ( !("intensity" %in% assayDataElementNames(object))) object<-RG2polar(object)
+reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,col="black",...) {
+  if ( !("intensity" %in% assayDataElementNames(snpdata))) snpdata<-RG2polar(snpdata)
   if (is.null(subsample)) {
-    ind<-order(numericCHR(pData(featureData(object))[,"CHR"]),pData(featureData(object))[,"MapInfo"])
-    object<-object[ind,]
+    ind<-order(numericCHR(pData(featureData(snpdata))[,"CHR"]),pData(featureData(snpdata))[,"MapInfo"])
+    snpdata<-snpdata[ind,]
     # use chromosomes as subsamples
-    subsample<-numericCHR(pData(featureData(object))[,"CHR"])
+    subsample<-numericCHR(pData(featureData(snpdata))[,"CHR"])
   } else {
-    subsample<-getSubsample(object,subsample)
+    subsample<-getSubsample(snpdata,subsample)
     ind<-order(subsample)
     subsample<-subsample[ind]
-    object<-object[ind,]
+    snpdata<-snpdata[ind,]
   }
   # find boundaries between subsamples
   vertlines<-which(subsample[-1]!=subsample[-length(subsample)])+0.5
-  for (sample in 1:length(sampleNames(object))) {
-    plot(assayData(object)[["intensity"]][,sample],col=1,pch=".",ylab="intensity",xlab="",
-         main=sampleNames(object)[sample],xaxt="n",...)
+  for (sample in 1:length(sampleNames(snpdata))) {
+    plot(assayData(snpdata)[["intensity"]][,sample],col=1,pch=".",ylab="intensity",xlab="",
+         main=sampleNames(snpdata)[sample],xaxt="n",...)
     abline(v=vertlines)
   }
 }

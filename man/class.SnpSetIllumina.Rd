@@ -13,6 +13,8 @@
 \alias{combine,SnpSetIllumina,ANY-method}
 \alias{featureData<-,SnpSetIllumina-method}
 \alias{featureData,SnpSetIllumina-method}
+\alias{calculateGSR,SnpSetIllumina-method}
+\alias{calculateGSR}
 
 \title{
   Class to Contain Objects Describing High-Throughput SNP Assays.
@@ -84,8 +86,10 @@
        slot.}
      \item{\code{combine(SnpSetIllumina,SnpSetIllumina)}:}{performs \code{union}-like 
 		   combination in both dimensions of SnpSetIllumina objects}
-     \item{\code{reporterInfo(SnpSetIllumina)}, \code{reporterInfo(SnpSetIllumina,matrix)<-}}{Access and
+     \item{\code{reporterInfo(SnpSetIllumina)}, \code{reporterInfo(SnpSetIllumina,data.frame)<-}}{Access and
        set the \code{pData} in the featureData slot}
+     \item{\code{calculateGSR(SnpSetIllumina)}}{calculate ratio of Gentrain score and Gencall score. Creates 
+       GSR matrix in \code{assayData}. Should be performed before combining datasets}
   }
   
    Derived from \code{\link[Biobase:eSet]{eSet}}:

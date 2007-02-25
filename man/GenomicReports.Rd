@@ -1,6 +1,9 @@
 \name{GenomicReports}
 \alias{reportChromosomesSmoothCopyNumber}
 \alias{reportSamplesSmoothCopyNumber}
+\alias{reportGenomeGainLossLOH}
+\alias{reportChromosomeGainLossLOH}
+\alias{reportGenomeIntensityPlot}
 \title{Genomic reports}
 \description{
   create reports for all samples in a dataset
@@ -10,6 +13,14 @@ reportChromosomesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2,
   smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), ...)
 reportSamplesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2, 
   smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), ...)
+reportGenomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, distance.min,
+  upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", lohwidth=1,segment=101,
+  orientation=c("V","H"),...)
+reportChromosomeGainLossLOH(snpdata,grouping,plotSampleNames=FALSE,distance.min,
+  upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", proportion=0.2, plotLOH=TRUE,
+  segment=101,...)  
+reportGenomeIntensityPlot(snpdata,normalizedTo=NULL,subsample=NULL,col="black",...)
+
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,7 +31,19 @@ reportSamplesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2,
   \item{smooth.lambda}{smoothing parameter for \code{\link[quantsmooth]{quantsmooth}}}
   \item{ridge.kappa}{smoothing parameter for \code{\link[quantsmooth]{quantsmooth}}}
   \item{plotLOH}{indicate regions or probes with LOH, see details}
-  \item{\dots}{arguments are forwarded to \code{plot}}
+  \item{plotSampleNames}{logical}
+  \item{distance.min}{numerical}
+  \item{upcolor}{color}
+  \item{downcolor}{}
+  \item{lohcolor}{}
+  \item{hetcolor}{}
+  \item{lohwidth}{}
+  \item{segment}{}
+  \item{orientation}{}
+  \item{proportion}{}
+  \item{subsample}{}
+  \item{col}{}
+  \item{\dots}{arguments are forwarded to \code{plot} or \code{getChangedRegions}}
 }
 \details{
   The first function creates plots for each group and each chromosome in the 
