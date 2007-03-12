@@ -29,8 +29,8 @@ convert2SegList <- function(object,normalizedTo=2,organism="hsa") {
   # convert Chrom
   clones.info$Chr<-numericCHR(clones.info$Chr)
   # convert sex chromosomes
-  if (organism=="hsa") clones.info$Chr[clones.info$Chrom >= 98] <- clones.info$Chr[clones.info$Chrom >= 98] - 75
-  if (organism=="mmu") clones.info$Chr[clones.info$Chrom >= 98] <- clones.info$Chr[clones.info$Chrom >= 98] - 78
+  if (organism=="hsa") clones.info$Chr[clones.info$Chr >= 98] <- clones.info$Chr[clones.info$Chr >= 98] - 75
+  if (organism=="mmu") clones.info$Chr[clones.info$Chr >= 98] <- clones.info$Chr[clones.info$Chr >= 98] - 78
   segList<-list()
   segList$M.observed<-log2.ratios
   segList$genes<-clones.info
