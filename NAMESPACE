@@ -3,7 +3,7 @@ import(tools, Biobase)
 exportClasses(SnpSetIllumina, QCIllumina)
 
 exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featureNames, 
-             ncol, pData, phenoData, sampleNames, samples, featureData,
+             pData, phenoData, sampleNames, samples, featureData,
              "annotation<-", "description<-", "experimentData<-", "exprs<-", 
              "featureNames<-", "geneNames<-", "pData<-",
              "phenoData<-", "sampleNames<-", "assayData<-", "featureData<-",

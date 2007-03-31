@@ -152,9 +152,11 @@ backgroundCorrect.SNP<- function(
         }
       }
   }, rma = {
-      require("affy")
-      R <- apply(R - Rb, 2, bg.adjust)
-      G <- apply(G - Gb, 2, bg.adjust)
+      
+      if(require(affy)){
+        R <- apply(R - Rb, 2, bg.adjust)
+        G <- apply(G - Gb, 2, bg.adjust)
+      } else stop("Package 'affy' is needed for rma background correction")
   })
   if (offset) {
       R <- R + offset
@@ -184,9 +186,11 @@ normalizeBetweenAlleles.SNP<-function(
     for (smp in 1:ncol(object)) {
       if (!all(is.na(R[probes,smp]))) switch(method,
         quantile = {
-          nrm<-normalizeQuantiles(cbind(R[probes,smp],G[probes,smp]))
-          R[probes,smp]<-nrm[,1]
-          G[probes,smp]<-nrm[,2]
+          if (require(limma)){
+            nrm<-normalizeQuantiles(cbind(R[probes,smp],G[probes,smp]))
+            R[probes,smp]<-nrm[,1]
+            G[probes,smp]<-nrm[,2]
+          } else stop("package 'limma' is needed for quantile between allele normalization")
         })
     }
   }

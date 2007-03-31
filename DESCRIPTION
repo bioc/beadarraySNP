@@ -5,8 +5,8 @@ Version: 1.1.11
 Date: 2007-01-28
 Author: Jan Oosting
 Maintainer: Jan Oosting <j.oosting@lumc.nl>
-Depends: methods, Biobase (>= 1.11.32), limma, quantsmooth
-Suggests: aCGH, snapCGH
+Depends: methods, tools, Biobase, quantsmooth
+Suggests: aCGH, affy, limma, snapCGH
 Description: Importing data from Illumina SNP experiments and performing copy number calculations and reports.
 License: GPL V2
 biocViews: DNACopyNumber, SNPsAndGeneticVariability, TwoChannel, Preprocessing, DataImport 
