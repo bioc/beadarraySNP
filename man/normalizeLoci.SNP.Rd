@@ -10,7 +10,7 @@
 
 \usage{
    normalizeLoci.SNP(object, method=c("normals","paired"), NorTum="NorTum",
-                     Gender="Gender", Subject="Subject",normalizeTo=2)
+                     Gender="Gender", Subject="Subject", normalizeTo=2, trig=FALSE)
 }
 \arguments{
    \item{object}{\code{object} class SnpSetIllumina}
@@ -27,6 +27,8 @@
      is used to pair the samples when \code{method} is \code{"paired"}}
    \item{normalizeTo}{\code{normalizeTo} numeric. The average copy number of the
      sample.}
+   \item{trig}{Logical, use geometric distance of intensity. Otherwise use 
+     addition of intensities}
 }
 
 \details{

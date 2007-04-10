@@ -10,11 +10,12 @@
 }
 
 \usage{
-   RG2polar(object)
-   polar2RG(object)
+   RG2polar(object,trig=FALSE)
+   polar2RG(object,trig=FALSE)
 }
 \arguments{
    \item{object}{SnpSetIllumina object}
+   \item{trig}{Logical, use geometric distance intensity. Otherwise use addition of intensities}
 }
 
 \details{

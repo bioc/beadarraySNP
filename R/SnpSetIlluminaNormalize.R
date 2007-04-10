@@ -58,38 +58,38 @@ backgroundEstimate<-function(object,
   for (OPA in levels(subsample)) {
     probes<-subsample == OPA # select all probes of this OPAset
     for (smp in 1:ncol(object)) {
-      if (!all(is.na(assayDataElement(object,"G")[probes,smp]))) {
+      if (!all(is.na(assayData(object)$G[probes,smp]))) {
         switch(method, minimum = {
-          min.intensity<-min(assayDataElement(object,"G")[probes,smp],na.rm=TRUE)
+          min.intensity<-min(assayData(object)$G[probes,smp],na.rm=TRUE)
           Gb[probes,smp]<-min.intensity-1
-          min.intensity<-min(assayDataElement(object,"R")[probes,smp],na.rm=TRUE)
+          min.intensity<-min(assayData(object)$R[probes,smp],na.rm=TRUE)
           Rb[probes,smp]<-min.intensity-1
         }, mode = {
-          int.density<-density(assayDataElement(object,"G")[probes,smp],na.rm=TRUE)
+          int.density<-density(assayData(object)$G[probes,smp],na.rm=TRUE)
           dens.probes<-int.density$x<maxmode
           Gb[probes,smp]<-int.density$x[dens.probes][which.max(int.density$y[dens.probes])]
-          int.density<-density(assayDataElement(object,"R")[probes,smp],na.rm=TRUE)
+          int.density<-density(assayData(object)$R[probes,smp],na.rm=TRUE)
           dens.probes<-int.density$x<maxmode
           Rb[probes,smp]<-int.density$x[dens.probes][which.max(int.density$y[dens.probes])]
         }, intmin = {
-          Gb[probes,smp]<-intminBG(assayDataElement(object,"G")[probes,smp],assayDataElement(object,"R")[probes,smp])
-          Rb[probes,smp]<-intminBG(assayDataElement(object,"R")[probes,smp],assayDataElement(object,"G")[probes,smp])
+          Gb[probes,smp]<-intminBG(assayData(object)$G[probes,smp],assayData(object)$R[probes,smp])
+          Rb[probes,smp]<-intminBG(assayData(object)$R[probes,smp],assayData(object)$G[probes,smp])
         }, anglemode = {
-          density.p<-density(assayDataElement(object,"theta")[probes,smp],na.rm=TRUE)
+          density.p<-density(assayData(object)$theta[probes,smp],na.rm=TRUE)
           probes.max<-density.p$x<maxangle
           density.p.max<-density.p$x[probes.max]
           mode.p.r<-max(0,density.p.max[which.max(density.p$y[probes.max])],na.rm=TRUE)
-          Rb[probes,smp]<-assayDataElement(object,"G")[probes,smp]*sin(mode.p.r)
+          Rb[probes,smp]<-assayData(object)$G[probes,smp]*sin(mode.p.r)
           probes.max<-density.p$x>(pi/2 -maxangle)
           density.p.max<-density.p$x[probes.max]
           mode.p.g<-min(pi/2,density.p.max[which.max(density.p$y[probes.max])],na.rm=TRUE)
-          Gb[probes,smp]<-assayDataElement(object,"R")[probes,smp]*cos(mode.p.g)
+          Gb[probes,smp]<-assayData(object)$R[probes,smp]*cos(mode.p.g)
         })
       }
     }
   }
-  object<-assayDataElementReplace(object,"Gb",Gb)
-  object<-assayDataElementReplace(object,"Rb",Rb)
+  object<-assayData(object)$Gb<-Gb
+  object<-assayData(object)$Rb<-Rb
   object
 }
 
@@ -100,7 +100,10 @@ backgroundCorrect.SNP<- function(
   # Background correction adapted from limma
   method<-match.arg(method)
 
-  if ( !all(c("Gb","Rb") %in% assayDataElementNames(object))) method<-"none"
+  if ( !all(c("Gb","Rb") %in% assayDataElementNames(object))) {
+    method<-"none"
+    warning("No background values found")
+  }
   R<-assayDataElement(object,"R")
   G<-assayDataElement(object,"G")
   Rb<-assayDataElement(object,"Rb")
@@ -165,8 +168,8 @@ backgroundCorrect.SNP<- function(
   # remove Rb and Gb from assaydata, and put in new G and R
   #THIS DOESN'T WORK. object<-assayDataElementReplace(object,"Gb",NULL)
   #object<-assayDataElementReplace(object,"Rb",NULL)
-  object<-assayDataElementReplace(object,"R",R)
-  object<-assayDataElementReplace(object,"G",G)
+  assayData(object)$R<-R
+  assayData(object)$G<-G
   object
 }
   
@@ -256,7 +259,8 @@ normalizeLoci.SNP <- function(
   NorTum="NorTum",
   Gender="Gender",
   Subject="Subject",
-  normalizeTo=2) {
+  normalizeTo=2,
+  trig=FALSE) {
 
   method<-match.arg(method)
 
@@ -278,8 +282,8 @@ normalizeLoci.SNP <- function(
   }
   Subject<-as.factor(Subject)
 
-  R<-assayDataElement(object,"R")
-  G<-assayDataElement(object,"G")
+  R<-assayData(object)$R
+  G<-assayData(object)$G
 
   switch(method, normals = {
     probe.med<-apply(R[,NorTum,drop=FALSE]+G[,NorTum,drop=FALSE],1,median,na.rm=TRUE)
@@ -303,28 +307,29 @@ normalizeLoci.SNP <- function(
     # use Subject to make Tumor/Normal pairs
   })
 
-  object<-assayDataElementReplace(object,"R",R)
-  object<-assayDataElementReplace(object,"G",G)
-  RG2polar(object)
+  assayData(object)$R<-R
+  assayData(object)$G<-G
+  RG2polar(object,trig)
 }
 
 
-RG2polar <-function(object) {
-  R<-assayDataElement(object,"R")
-  G<-assayDataElement(object,"G")
-  object<-assayDataElementReplace(object,"theta",atan2(G, R))
-  object<-assayDataElementReplace(object,"intensity",G+R) # real polar would be r=sqrt(G ^ 2 + R ^ 2)
+RG2polar <-function(object,trig=FALSE) {
+  assayData(object)$theta<-atan2(assayData(object)$G, assayData(object)$R)
+  if (trig) assayData(object)$intensity<- sqrt(assayData(object)$G ^ 2 + assayData(object)$R ^ 2)
+  else assayData(object)$intensity<- assayData(object)$G+assayData(object)$R 
   object
 }
 
-polar2RG <-function(object) {
-  theta<-assayDataElement(object,"theta")
-  intensity<-assayDataElement(object,"intensity")
-  snpdata.cos<-cos(theta)
-  Red.perc<-snpdata.cos/(snpdata.cos+sin(theta))
-
-  object<-assayDataElementReplace(object,"R",intensity * Red.perc)
-  object<-assayDataElementReplace(object,"G",intensity * (1-Red.perc))
+polar2RG <-function(object,trig=FALSE) {
+  if (trig) {
+    object<-assayData(object)$R<-assayData(object)$intensity * cos(assayData(object)$theta)
+    object<-assayData(object)$G<-assayData(object)$intensity * sin(assayData(object)$theta)
+  } else {
+    snpdata.cos<-cos(assayData(object)$theta)
+    Red.perc<-snpdata.cos/(snpdata.cos+sin(assayData(object)$theta))
+    object<-assayData(object)$R<-assayData(object)$intensity * Red.perc
+    object<-assayData(object)$G<-assayData(object)$intensity * (1-Red.perc)
+  }
   object
 }
 

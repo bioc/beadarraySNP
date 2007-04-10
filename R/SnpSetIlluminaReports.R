@@ -51,7 +51,7 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
   }
 }
 pdfSamplesSmoothCopyNumber<-function(object,filename,...) {
-  pdf(filename,paper="a4",width=7.2,height=11)
+  pdf(filename,width=7.2,height=11)
 	reportSamplesSmoothCopyNumber(object,...)
 	dev.off() 
 }
@@ -117,7 +117,7 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
 }
 
 pdfChromosomesSmoothCopyNumber<-function(object,filename,...) {
-  pdf(filename,paper="a4",width=7.2,height=11)
+  pdf(filename,width=7.2,height=11)
   par(mfrow=c(4,1),mar=c(1.5,2,2,0))
 	reportChromosomesSmoothCopyNumber(object,...)
 	dev.off() 
@@ -240,7 +240,7 @@ reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,dis
 }
 
 pdfChromosomeGainLossLOH<-function(object,filename,...) {
-  pdf(filename,paper="a4",width=7.2,height=11)
+  pdf(filename,width=7.2,height=11)
   par(mfrow=c(4,1),mar=c(1.5,2,2,0))
   reportChromosomeGainLossLOH(object,...)
   dev.off()

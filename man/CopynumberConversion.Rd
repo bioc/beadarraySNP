@@ -30,13 +30,12 @@
 \value{
   \code{convert2aCGH} returns a \code{aCGH} object as used in the aCGH package.
   \code{convert2SegList} returns a \code{SegList} object as used in the snapCGH package.
-  This function returns an \code{SnpSetIllumina} object. The \code{Rb} and \code{Gb} 
-  matrices in the \code{assayData} slot contain estimated background values.
+  
 }
 \author{Jan Oosting}
 
 \seealso{
-   \code{\link{SnpSetIllumina-class}}
+   \code{\link{SnpSetIllumina-class}}, \code{\link[aCGH:aCGH]{aCGH-class}}, \code{\link[snapCGH:SegList]{SegList-class}}
 }
 \examples{
 
