@@ -73,11 +73,11 @@ setReplaceMethod("reporterInfo", c("SnpSetIllumina", "data.frame"), function(obj
     stop(paste("assayData have different element names:",
                paste(nmfunc(x), collapse=" "),
                paste(nmfunc(y), collapse=" "), sep="\n\t"))
-               
-  for (nm in nmfunc(x)) {
-    x<-assayDataElementReplace(x,nm,combineElement(assayDataElement(x,nm),assayDataElement(y,nm)))
+  res<-x
+  for (nm in nmfunc(res)) {
+    res<-assayDataElementReplace(res,nm,combineElement(assayDataElement(res,nm),assayDataElement(y,nm)))
   }
-  x
+  res
 }
 
 .mergeAnnotateddata<-function(x , y, samples) {

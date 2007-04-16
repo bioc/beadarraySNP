@@ -88,9 +88,10 @@ backgroundEstimate<-function(object,
       }
     }
   }
-  object<-assayData(object)$Gb<-Gb
-  object<-assayData(object)$Rb<-Rb
-  object
+  res<-object
+  assayData(res)$Gb<-Gb
+  assayData(res)$Rb<-Rb
+  res
 }
 
 backgroundCorrect.SNP<- function(
@@ -168,9 +169,10 @@ backgroundCorrect.SNP<- function(
   # remove Rb and Gb from assaydata, and put in new G and R
   #THIS DOESN'T WORK. object<-assayDataElementReplace(object,"Gb",NULL)
   #object<-assayDataElementReplace(object,"Rb",NULL)
-  assayData(object)$R<-R
-  assayData(object)$G<-G
-  object
+  res<-object
+  assayData(res)$R<-R
+  assayData(res)$G<-G
+  res
 }
   
 normalizeBetweenAlleles.SNP<-function(
@@ -197,9 +199,10 @@ normalizeBetweenAlleles.SNP<-function(
         })
     }
   }
-  object<-assayDataElementReplace(object,"R",R)
-  object<-assayDataElementReplace(object,"G",G)
-  object
+  res<-object
+  assayData(res)$R<-R
+  assayData(res)$G<-G
+  res
 }
 
 normalizeWithinArrays.SNP<-function(
@@ -248,9 +251,10 @@ normalizeWithinArrays.SNP<-function(
     G[probes,]<-sweep(G[probes,],2,green.med,FUN="/")
     R[probes,]<-sweep(R[probes,],2,red.med,FUN="/")
   }
-  object<-assayDataElementReplace(object,"R",R)
-  object<-assayDataElementReplace(object,"G",G)
-  object
+  res<-object
+  assayData(res)$R<-R
+  assayData(res)$G<-G
+  res
 }
 
 normalizeLoci.SNP <- function(
@@ -282,54 +286,58 @@ normalizeLoci.SNP <- function(
   }
   Subject<-as.factor(Subject)
 
-  R<-assayData(object)$R
-  G<-assayData(object)$G
-
+  if (trig)
+    intensity<-sqrt(assayData(object)$G ^ 2 + assayData(object)$R ^ 2)
+  else
+    intensity<-assayData(object)$G + assayData(object)$R
   switch(method, normals = {
-    probe.med<-apply(R[,NorTum,drop=FALSE]+G[,NorTum,drop=FALSE],1,median,na.rm=TRUE)
+    probe.med<-apply(intensity[,NorTum,drop=FALSE],1,median,na.rm=TRUE)
     if (!all(Gender)) {
       if ("CHR" %in% varLabels(featureData(object))) {
        # Handle Sexchromosomes
         numChrom<-numericCHR(pData(featureData(object))[,"CHR"])
         # Use only normal females for X
         probes<-numChrom==98
-        probe.med[probes]<-apply(R[probes,NorTum & Gender,drop=FALSE]+G[probes,NorTum & Gender,drop=FALSE],1,median,na.rm=TRUE)
+        probe.med[probes]<-apply(intensity[probes,NorTum & Gender,drop=FALSE],1,median,na.rm=TRUE)
 
         # Use only normal males for Y
         probes<-numChrom==99
-        probe.med[probes]<-apply(R[probes,NorTum & !Gender,drop=FALSE]+G[probes,NorTum & !Gender,drop=FALSE],1,median,na.rm=TRUE)*2
+        probe.med[probes]<-apply(intensity[probes,NorTum & !Gender,drop=FALSE],1,median,na.rm=TRUE)*2
       }
     }
-    R<-sweep(R,1,probe.med,FUN="/")*normalizeTo
-    G<-sweep(G,1,probe.med,FUN="/")*normalizeTo
+    R<-sweep(assayData(object)$R,1,probe.med,FUN="/")*normalizeTo
+    G<-sweep(assayData(object)$G,1,probe.med,FUN="/")*normalizeTo
 
   }, paired = {
     # use Subject to make Tumor/Normal pairs
   })
 
-  assayData(object)$R<-R
-  assayData(object)$G<-G
-  RG2polar(object,trig)
+  res<-object
+  assayData(res)$R<-R
+  assayData(res)$G<-G
+  RG2polar(res,trig)
 }
 
 
 RG2polar <-function(object,trig=FALSE) {
-  assayData(object)$theta<-atan2(assayData(object)$G, assayData(object)$R)
-  if (trig) assayData(object)$intensity<- sqrt(assayData(object)$G ^ 2 + assayData(object)$R ^ 2)
-  else assayData(object)$intensity<- assayData(object)$G+assayData(object)$R 
-  object
+  res<-object
+  assayData(res)$theta<-atan2(assayData(res)$G, assayData(res)$R)
+  if (trig) assayData(res)$intensity<- sqrt(assayData(res)$G ^ 2 + assayData(res)$R ^ 2)
+  else assayData(res)$intensity<- assayData(res)$G+assayData(res)$R
+  res
 }
 
 polar2RG <-function(object,trig=FALSE) {
+  res<-object
   if (trig) {
-    object<-assayData(object)$R<-assayData(object)$intensity * cos(assayData(object)$theta)
-    object<-assayData(object)$G<-assayData(object)$intensity * sin(assayData(object)$theta)
+    assayData(res)$R<-assayData(res)$intensity * cos(assayData(res)$theta)
+    assayData(res)$G<-assayData(res)$intensity * sin(assayData(res)$theta)
   } else {
-    snpdata.cos<-cos(assayData(object)$theta)
-    Red.perc<-snpdata.cos/(snpdata.cos+sin(assayData(object)$theta))
-    object<-assayData(object)$R<-assayData(object)$intensity * Red.perc
-    object<-assayData(object)$G<-assayData(object)$intensity * (1-Red.perc)
+    snpdata.cos<-cos(assayData(res)$theta)
+    Red.perc<-snpdata.cos/(snpdata.cos+sin(assayData(res)$theta))
+    assayData(res)$R<-assayData(res)$intensity * Red.perc
+    assayData(res)$G<-assayData(res)$intensity * (1-Red.perc)
   }
-  object
+  res
 }
 

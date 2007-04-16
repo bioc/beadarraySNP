@@ -54,9 +54,10 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
 	    }
 	  }
 	}
-	assayData(object)[["loh"]]<-loh
-	assayData(object)[["nor.gt"]]<-nor.gt
-	object
+	res<-object
+	assayData(res)$loh<-loh
+	assayData(res)$nor.gt<-nor.gt
+  res
 }
 
 
