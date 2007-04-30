@@ -156,7 +156,8 @@ setMethod("calculateGSR", "SnpSetIllumina", function(object) {
   assayDataElementReplace(object,"GSR",sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/"))
 })
 
-read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE) {
+read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL, 
+  reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE) {
   if (verbose) cat("Samplesheet:",ifelse(is.data.frame(samplesheet),"<data.frame>",samplesheet),"\n")
   if (is.data.frame(samplesheet)) {
     samples<-samplesheet
@@ -184,6 +185,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
   rownames(samples)<-samples[,"Sample_Name"]
   
 	if (is.null(reportfile)) { 
+    if(is.null(SNPinfo)) stop(paste("OPA info file could not be (uniquely) identified for",OPAname))
     # Import data from GenCall software
     # GenCall, GenScore
     gencalls<-IlluminaGetGencalls(reportpath,OPAname)
@@ -201,6 +203,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
   	RDev<-NULL
   	GenCall<-NULL
   	GenScore<-NULL
+  	BeadData<-list()
     for (sample in 1:nrow(samples)) {
       # read data, sort by rsnumber, new data only has illumnicode
       # drop data that has no rs-codes
@@ -209,8 +212,24 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       if (colname %in% colnames(impGenCall)) {
         GenCall<-cbind(GenCall,impGenCall[,colname])
         GenScore<-cbind(GenScore,impGenScore[,colname])
-        sampledata<-read.table(file.path(rawdatapath,paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".csv",sep="")),header=TRUE,sep=",",row.names=1,as.is=TRUE)
-        sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
+        beadfile<-list.files(rawdatapath,pattern=paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".txt",sep=""),full.names=TRUE)
+        if (length(beadfile)==1) {
+          BeadData[[colname]]<-read.table(beadfile,header=TRUE,sep="\t",as.is=TRUE)
+        }
+        summaryfile<-list.files(rawdatapath,pattern=paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".csv",sep=""),full.names=TRUE)
+        if (length(summaryfile)==1) {
+          sampledata<-read.table(summaryfile,header=TRUE,sep=",",row.names=1,as.is=TRUE)
+          sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
+        } else {
+          # calculate from beaddata 
+          if (length(beadfile)!=1) stop(paste("Missing files to determine intensity for sample",colname))
+          sampledata<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=median)
+          rownames(sampledata)<-sampledata[,1]
+          sampledev<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=sd)
+          sampledata<-cbind(sampledata[,2:3],sampledev[,2:3])
+          sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
+          colnames(sampledata)<-c("Mean.GRN","Mean.RED","Dev.GRN","Dev.RED")
+        }
         G<-cbind(G,sampledata[,"Mean.GRN"])
         R<-cbind(R,sampledata[,"Mean.RED"])
         GDev<-cbind(GDev,sampledata[,"Dev.GRN"])
@@ -232,6 +251,11 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     rownames(SNPinfo)<-SNPinfo[,"snpid"]
     SNPinfo<-cbind(SNPinfo,GTS=as.numeric(gencalls$locusinfo[rownames(SNPinfo),"GTS"]))
   } else {
+    chrompos.fromReport<-FALSE
+    if(is.null(SNPinfo)) {
+      warning(paste("OPA info file could not be (uniquely) identified for",OPAname,"Using chromosomal position from report file"))
+      chrompos.fromReport<-TRUE
+    }
     # Import data from BeadStudio report file
     firstfield <- scan(reportfile, what = "", sep = ",", flush = TRUE,
             quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE,nlines=100)
@@ -240,6 +264,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     alldata<-read.table(reportfile, skip=skip, header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE,colClasses="character")
     # Integrity checks
     essentialcols<-c("SNP Name","Sample ID","GC Score","Allele1 - AB","Allele2 - AB","GT Score","Cluster Sep","Theta","R","X Raw","Y Raw")
+    if (chrompos.fromReport) essentialcols<-c(essentialcols,c("Chr","Position"))
     foundcols<-essentialcols %in% colnames(alldata)
     if (!all(foundcols)) stop ("Columns:",paste(essentialcols[!foundcols])," are missing in the report file")
     m<-length(unique(alldata[,"SNP Name"]))
@@ -272,8 +297,14 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     colnames(R)<-samples[,"Sample_Name"]
     colnames(GenScore)<-samples[,"Sample_Name"]
     colnames(GenCall)<-samples[,"Sample_Name"]
-    SNPinfo<-SNPinfo[rownames(G),]
-    SNPinfo<-cbind(SNPinfo,GTS=GTS)
+    if (chrompos.fromReport) {
+      CHR<-matrix(as.numeric(alldata[,"Chr"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      SNPinfo<-data.frame(CHR=CHR[,1,drop=FALSE],MapInfo=MapInfo[,1],GTS=GTS)
+    } else {
+      SNPinfo<-SNPinfo[rownames(G),]
+      SNPinfo<-cbind(SNPinfo,GTS=GTS)
+    }
     samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
   }
   new("SnpSetIllumina",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, call=GenCall, callProbability=GenScore, G=G, R=R,
@@ -300,23 +331,24 @@ IlluminaGetOPAinfo<-function(OPAname,OPAinfoPath,brief=TRUE) {
   # snpid : international snp id rsxxxxxx (used as row names)
   # IllCode : numeric within linkage panel to connect to snpid
 	OPAfile<-list.files(OPAinfoPath,pattern=paste(OPAname,".*\\.opa$",sep=""),full.names=TRUE)
-	if (length(OPAfile) != 1) stop(paste("OPA info file could not be (uniquely) identified for",OPAset))
-	# import it to the database
-  firstfield <- scan(OPAfile, what = "", sep = ",", flush = TRUE, quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
-  skip <- grep("Ilmn ID", firstfield, fixed=TRUE)
-  if (length(skip) == 0) stop("Cannot find \"Ilmn ID\" in OPA info file")
-	enddata<- grep("[Gentrain Request]", firstfield, fixed=TRUE)
-  if (length(enddata) == 0) stop("Cannot find \"[Gentrain Request]\" in OPA info file")
-	#OPAmetaInfo<-read.table(OPAfile,sep=",",nrows=skip[1]-1,fill=TRUE,as.is=TRUE)
-	#OPAtestName<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Name",2]
-	#OPAversion<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Version",2]
-	#OPAdate<-OPAmetaInfo[OPAmetaInfo[,1]=="Date Manufactured",2]
-	OPAinfo<-read.table(OPAfile, skip=skip[1]-1, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE, nrows=enddata[1]-skip[1]-1)
-  colnames(OPAinfo)<-c("Illname","snpid","oligo1","oligo2","oligo3","IllCode","IllOligo","IllStrand","snpbases","CHR","Ploidy","Species","MapInfo","TopGenomicSeq","CustomerStrand")
-  rownames(OPAinfo)<-OPAinfo[,"snpid"]
-  OPAnames<-rep(OPAname,nrow(OPAinfo))
-  if (brief) cbind(OPA=I(OPAnames),OPAinfo[,c("snpid","IllCode","CHR","MapInfo")])
-  else cbind(OPA=I(OPAnames),OPAinfo)
+	if (length(OPAfile) == 1) {
+  	# import it to the database
+    firstfield <- scan(OPAfile, what = "", sep = ",", flush = TRUE, quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
+    skip <- grep("Ilmn ID", firstfield, fixed=TRUE)
+    if (length(skip) == 0) stop("Cannot find \"Ilmn ID\" in OPA info file")
+  	enddata<- grep("[Gentrain Request]", firstfield, fixed=TRUE)
+    if (length(enddata) == 0) stop("Cannot find \"[Gentrain Request]\" in OPA info file")
+  	#OPAmetaInfo<-read.table(OPAfile,sep=",",nrows=skip[1]-1,fill=TRUE,as.is=TRUE)
+  	#OPAtestName<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Name",2]
+  	#OPAversion<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Version",2]
+  	#OPAdate<-OPAmetaInfo[OPAmetaInfo[,1]=="Date Manufactured",2]
+  	OPAinfo<-read.table(OPAfile, skip=skip[1]-1, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE, nrows=enddata[1]-skip[1]-1)
+    colnames(OPAinfo)<-c("Illname","snpid","oligo1","oligo2","oligo3","IllCode","IllOligo","IllStrand","snpbases","CHR","Ploidy","Species","MapInfo","TopGenomicSeq","CustomerStrand")
+    rownames(OPAinfo)<-OPAinfo[,"snpid"]
+    OPAnames<-rep(OPAname,nrow(OPAinfo))
+    if (brief) cbind(OPA=I(OPAnames),OPAinfo[,c("snpid","IllCode","CHR","MapInfo")])
+    else cbind(OPA=I(OPAnames),OPAinfo)
+  } else NULL
 }
 
 
