@@ -157,7 +157,7 @@ setMethod("calculateGSR", "SnpSetIllumina", function(object) {
 })
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL, 
-  reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE) {
+  reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE, readTIF=FALSE, ...) {
   if (verbose) cat("Samplesheet:",ifelse(is.data.frame(samplesheet),"<data.frame>",samplesheet),"\n")
   if (is.data.frame(samplesheet)) {
     samples<-samplesheet
@@ -204,6 +204,18 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
   	GenCall<-NULL
   	GenScore<-NULL
   	BeadData<-list()
+    if (readTIF) {
+      if (!require(beadarray)) stop("beadarray package is needed to load data from tif files")
+      BL<-readIllumina(paste(samples[,"Sentrix_ID"],samples[,"Sentrix_Position"],sep="_"),textType=".txt",rawdatapath,...)
+      BS<-createBeadSummaryData(BL,imagesPerArray=1)
+      ind<-as.character(SNPinfo$IllCode)
+      G<-assayData(BS)$G[ind,]
+      R<-assayData(BS)$R[ind,]
+      GDev<-assayData(BS)$GBeadStDev[ind,]
+      RDev<-assayData(BS)$RBeadStDev[ind,]
+      samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
+      rm(BS,BL)
+    }
     for (sample in 1:nrow(samples)) {
       # read data, sort by rsnumber, new data only has illumnicode
       # drop data that has no rs-codes
@@ -212,29 +224,31 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       if (colname %in% colnames(impGenCall)) {
         GenCall<-cbind(GenCall,impGenCall[,colname])
         GenScore<-cbind(GenScore,impGenScore[,colname])
-        beadfile<-list.files(rawdatapath,pattern=paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".txt",sep=""),full.names=TRUE)
-        if (length(beadfile)==1) {
-          BeadData[[colname]]<-read.table(beadfile,header=TRUE,sep="\t",as.is=TRUE)
+        if (!readTIF) {
+          beadfile<-list.files(rawdatapath,pattern=paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".txt",sep=""),full.names=TRUE)
+          if (length(beadfile)==1) {
+            BeadData[[colname]]<-read.table(beadfile,header=TRUE,sep="\t",as.is=TRUE)
+          }
+          summaryfile<-list.files(rawdatapath,pattern=paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".csv",sep=""),full.names=TRUE)
+          if (length(summaryfile)==1) {
+            sampledata<-read.table(summaryfile,header=TRUE,sep=",",row.names=1,as.is=TRUE)
+            sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
+          } else {
+            # calculate from beaddata 
+            if (length(beadfile)!=1) stop(paste("Missing files to determine intensity for sample",colname))
+            sampledata<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=median)
+            rownames(sampledata)<-sampledata[,1]
+            sampledev<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=sd)
+            sampledata<-cbind(sampledata[,2:3],sampledev[,2:3])
+            sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
+            colnames(sampledata)<-c("Mean.GRN","Mean.RED","Dev.GRN","Dev.RED")
+          }
+          G<-cbind(G,sampledata[,"Mean.GRN"])
+          R<-cbind(R,sampledata[,"Mean.RED"])
+          GDev<-cbind(GDev,sampledata[,"Dev.GRN"])
+          RDev<-cbind(RDev,sampledata[,"Dev.RED"])
+          samples[sample,"validn"]<-sum(!is.na(sampledata[,"Mean.GRN"]))
         }
-        summaryfile<-list.files(rawdatapath,pattern=paste(paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_"),".csv",sep=""),full.names=TRUE)
-        if (length(summaryfile)==1) {
-          sampledata<-read.table(summaryfile,header=TRUE,sep=",",row.names=1,as.is=TRUE)
-          sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
-        } else {
-          # calculate from beaddata 
-          if (length(beadfile)!=1) stop(paste("Missing files to determine intensity for sample",colname))
-          sampledata<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=median)
-          rownames(sampledata)<-sampledata[,1]
-          sampledev<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=sd)
-          sampledata<-cbind(sampledata[,2:3],sampledev[,2:3])
-          sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
-          colnames(sampledata)<-c("Mean.GRN","Mean.RED","Dev.GRN","Dev.RED")
-        }
-        G<-cbind(G,sampledata[,"Mean.GRN"])
-        R<-cbind(R,sampledata[,"Mean.RED"])
-        GDev<-cbind(GDev,sampledata[,"Dev.GRN"])
-        RDev<-cbind(RDev,sampledata[,"Dev.RED"])
-        samples[sample,"validn"]<-sum(!is.na(sampledata[,"Mean.GRN"]))
       } else {
         warning(paste("Sample",rownames(samples)[sample],"is defined in samplesheet, but is not in the reportfile"))
       }

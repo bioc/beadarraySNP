@@ -7,13 +7,13 @@ heterozygousSNPs<-function(object,
   percentile=FALSE) {
   ## retrieve a logical from SNPcall, together with quality measure
   ## consider low-quality SNPs to be non-heterozygous
-  heterozyg<-assayData(object)[["call"]] == "AB" | assayData(object)[["call"]] == "H"
+  heterozyg<-assayData(object)$call == "AB" | assayData(object)$call == "H"
   if (useQuality) {
-    if (!is.null(assayData(object)[["callProbability"]])){
-      GenScore<-assayData(object)[["callProbability"]]
+    if (!is.null(assayData(object)$callProbability)){
+      GenScore<-assayData(object)$callProbability
       if (relative) {
         if ("GSR" %in% assayDataElementNames(object)) {
-          GenScore<-assayData(object)[["GSR"]]
+          GenScore<-assayData(object)$GSR
         } else {
 	        if ("GTS" %in% varLabels(featureData(object)))
 	          GenScore<-sweep(GenScore,1,pData(featureData(object))[,"GTS"],"/")
@@ -40,8 +40,7 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
 	#
   hetSNPs<-heterozygousSNPs(object,...)
 	loh<-matrix(FALSE,nrow=nrow(object),ncol=ncol(object),dimnames=list(featureNames(object),sampleNames(object)))
-	nor.gt<-matrix("",nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(loh))
-	nor.qs<-matrix(0,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(loh))
+	nor.gt<-hetSNPs
 	for (pageID in levels(factor(grouping))) {
 	  samples <- sampleNames(object)[grouping == pageID]
 	  n1 <- which(NorTum[samples])
@@ -50,13 +49,24 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
 	  if (length(n1)>0 & length(t1)>0) { # at least 1 normal and 1 tumor sample in group
 	    for (tum in 1:length(t1)) {
 	      loh[,t1[tum]]<-hetSNPs[,n1] & !hetSNPs[,t1[tum]]
-	      nor.gt[,t1[tum]]<-hetSNPs[,n1]
+        nor.gt[,t1[tum]]<-hetSNPs[,n1]
 	    }
 	  }
 	}
+	# compute lesser allele intensity ratio value between 0 and 0.5 (relative to own normal)
+	lai<-assayData(object)$G/(assayData(object)$G+assayData(object)$R)
+	lai.n<-lai
+  for (smp in unique(grouping)) {
+    idx<-which((grouping == smp) & NorTum)[1]
+    lai.n[,grouping == smp]<-lai[,idx]
+  }
+  lai<-ifelse(lai-lai.n<0,(lai/lai.n)*0.5,((1-lai)/(1-lai.n))*0.5)
+  #lai[lai>0.5]<-1-lai[lai>0.5]
+  #
 	res<-object
 	assayData(res)$loh<-loh
 	assayData(res)$nor.gt<-nor.gt
+	assayData(res)$lai<-lai
   res
 }
 

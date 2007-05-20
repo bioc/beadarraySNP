@@ -268,6 +268,43 @@ reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,col
   }
 }
 
+reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0,minProbes=10) {
+  if (!all(c("lai","nor.gt","loh") %in% assayDataElementNames(object)))
+    stop("'calculateLOH' should be performed before making this report")
+  if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
+    stop("'segmentate' should be performed before making this report")
+  subsample<-getSubsample(object,subsample)
+  if (panels == 0)
+    panels<-length(levels(subsample))
+  par(mfrow=c(panels,1),mar=c(2.6,4.1,3.6,1.6))
+  for (smp in 1:ncol(object)) {
+    for (subsmp in levels(subsample)) {
+      selection<-subsample == subsmp
+      chrs<-summary(as.factor(featureData(object)$CHR[selection]))
+      selection<-selection & featureData(object)$CHR %in% names(chrs[chrs>=10])      
+      plot(0,type="n",main=sampleNames(object)[smp],ylab="intensity",yaxt="none",xlab="",xaxt="none")
+      par(usr=c(0,sum(selection),-0.25,max(assayData(object)$observed[selection,smp],na.rm=FALSE)))
+      if (plotRaw) points(assayData(object)$observed[selection,smp],pch=".")
+      chr<-featureData(object)$CHR[selection]
+      xax<-getMidMaxIdx(chr)
+      axis(1,xax$midpos,row.names(xax))
+      axis(2)
+      abline(v=xax$maxpos)
+      points(assayData(object)$predicted[selection,smp],pch="-",col="red")
+      #
+      abline(h=0.25)
+      het.nrm<-assayData(object)$nor.gt[selection,smp]=="TRUE"
+      het.nrm<-names(het.nrm)[het.nrm]
+      het.nrm<-het.nrm[!is.na(het.nrm)]
+      idx<-which(featureNames(object)[selection] %in% het.nrm)
+      points(idx,assayData(object)$lai[het.nrm,smp]*0.5,pch="-",col="blue")
+      q.col<-ifelse(assayData(object)$GSR[het.nrm,smp]<0.8,"mediumblue","yellow")
+      col<-ifelse(assayData(object)$call[het.nrm,smp]=="H",q.col,"red")
+      points(idx,(assayData(object)$GSR[het.nrm,smp]*0.25)-0.25,pch="-",col=col)
+    }
+  }
+  invisible()
+}
 
 plotGroupZygosity <- function(Green,Red,GenCall,Grouping,NorTum,NormalizedTo=1,...) {
   # Plot alleles. Green to X-axis, Red to Y-axis
