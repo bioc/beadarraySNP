@@ -268,7 +268,7 @@ reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,col
   }
 }
 
-reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0,minProbes=10) {
+reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0,minProbes=10,maxY=2,...) {
   if (!all(c("lai","nor.gt","loh") %in% assayDataElementNames(object)))
     stop("'calculateLOH' should be performed before making this report")
   if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
@@ -282,8 +282,11 @@ reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0
       selection<-subsample == subsmp
       chrs<-summary(as.factor(featureData(object)$CHR[selection]))
       selection<-selection & featureData(object)$CHR %in% names(chrs[chrs>=10])      
-      plot(0,type="n",main=sampleNames(object)[smp],ylab="intensity",yaxt="none",xlab="",xaxt="none")
-      par(usr=c(0,sum(selection),-0.25,max(assayData(object)$observed[selection,smp],na.rm=FALSE)))
+      if (is.null(maxY) | maxY<0) maxY.opa<-max(assayData(object)$observed[selection,smp],na.rm=TRUE)
+      else maxY.opa<-maxY
+
+      plot(0,type="n",main=sampleNames(object)[smp],ylab="intensity",yaxt="none",xlab="",xaxt="none",...)
+      par(usr=c(0,sum(selection),-0.25, maxY.opa))
       if (plotRaw) points(assayData(object)$observed[selection,smp],pch=".")
       chr<-featureData(object)$CHR[selection]
       xax<-getMidMaxIdx(chr)
