@@ -25,4 +25,4 @@ export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        reportChromosomeGainLossLOH, reportGenomeIntensityPlot,
        convert2aCGH, convert2SegList, segmentate, reportGenotypeSegmentation,
        plotGoldenGate4OPA, getIdGoldenGate4OPA, createCNSummary, alterCN,
-       getDNAindex )
+       getDNAindex, interactiveCNselect, setRealCN )
