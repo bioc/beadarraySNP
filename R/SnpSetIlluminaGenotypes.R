@@ -53,20 +53,19 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
 	    }
 	  }
 	}
-	# compute lesser allele intensity ratio value between 0 and 0.5 (relative to own normal)
-	lai<-assayData(object)$G/(assayData(object)$G+assayData(object)$R)
-	lai.n<-lai
+	# compute lesser allele intensity ratio value between 0 and 1 (relative to own normal)
+	lair<-assayData(object)$G/(assayData(object)$G+assayData(object)$R)
+	lair.n<-lair
   for (smp in unique(grouping)) {
     idx<-which((grouping == smp) & NorTum)[1]
-    lai.n[,grouping == smp]<-lai[,idx]
+    lair.n[,grouping == smp]<-lair[,idx]
   }
-  lai<-ifelse(lai-lai.n<0,(lai/lai.n)*0.5,((1-lai)/(1-lai.n))*0.5)
-  #lai[lai>0.5]<-1-lai[lai>0.5]
+  lair<-ifelse(lair-lair.n<0,(lair/lair.n),((1-lair)/(1-lair.n)))
   #
 	res<-object
 	assayData(res)$loh<-loh
 	assayData(res)$nor.gt<-nor.gt
-	assayData(res)$lai<-lai
+	assayData(res)$lair<-lair
   res
 }
 

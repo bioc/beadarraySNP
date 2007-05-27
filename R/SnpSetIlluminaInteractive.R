@@ -29,7 +29,7 @@ interactiveCNselect<-function(object,sample=1,dnaIndex) {
 }
 
 plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,...) {
-  if (!all(c("lai","nor.gt","loh") %in% assayDataElementNames(object)))
+  if (!all(c("lair","nor.gt","loh") %in% assayDataElementNames(object)))
     stop("'calculateLOH' should be performed before making this plot")
   if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
     stop("'segmentate' should be performed before making this plot")
@@ -55,13 +55,17 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
     chrs<-summary(as.factor(featureData(object)$CHR[selection]))
     selection<-selection & featureData(object)$CHR %in% names(chrs[chrs>=10])
     selected.n<-sum(selection)
+    # Horizontal section in subplot
+    abline(h=y.base+c(-0.25,0.25,1,2),col=c("black","black","grey","black"))
+    #
     if (plotRaw) points((1:selected.n)/selected.n,y.base+assayData(object)$observed[selection,sample],pch=".")
+    # Chromosome annotation
     chr<-featureData(object)$CHR[selection]
     xax<-getMidMaxIdx(chr)
     text(xax$midpos/selected.n,y.base-1,row.names(xax),pos=3)
     axis(2,y.base+c(0.5,1,1.5),c(0.5,1,1.5))
     segments(xax$maxpos/selected.n,y.base-1,xax$maxpos/selected.n,y.base+2)
-    abline(h=y.base+c(-0.25,0.25,1,2),col=c("black","black","grey","black"))
+    # Values from segmentation function
     predicted<-assayData(object)$predicted[selection,sample]
     points((1:selected.n)/selected.n,y.base+predicted,pch="-",col="red")
     # cn from user
@@ -74,20 +78,27 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
       predicted[probes]<-mean(predicted[probes])
     }
     points((1:selected.n)/selected.n,y.base+predicted,pch="-",col="green")
-    idx<-which(c(trueCN,trueCN[length(trueCN)])!=c(-100,trueCN))
+    # Annotation of segments. Also subdivide at chromosomal boundaries
+    idx<-which(c(trueCN,trueCN[length(trueCN)])!=c(-100,trueCN) | c(chr[1],chr)!=c(chr,chr[length(chr)]))
     posi<-(idx+c(idx[-1],length(trueCN)+1))/2 -0.5
     text(posi/selected.n,y.base-0.7,trueCN[idx],pos=3,col="green" )
     segments(idx/selected.n,y.base-1,idx/selected.n,y.base-0.25,col="green")
-    #
+    # lesser allele intensity ratio
+    lair.offset<- -0.15
+    lair.range<- 0.40
     het.nrm<-assayData(object)$nor.gt[selection,sample]=="TRUE"
     het.nrm<-names(het.nrm)[het.nrm]
     het.nrm<-het.nrm[!is.na(het.nrm)]
     idx<-which(featureNames(object)[selection] %in% het.nrm)
-    points(idx/selected.n,y.base+assayData(object)$lai[het.nrm,sample]*0.5,pch="-",col="blue")
-    q.col<-ifelse(assayData(object)$GSR[het.nrm,sample]<0.8,"mediumblue","yellow")
+    points(idx/selected.n,y.base+lair.offset+assayData(object)$lair[het.nrm,sample]*lair.range,pch="-",col="blue")
+    # LOH + quality
+    loh.offset<- -0.25
+    loh.range<- 0.10
+    loh.width<- 1.5
+    q.col<-ifelse(assayData(object)$GSR[het.nrm,sample]<0.8,"mediumblue","green")
     col<-ifelse(assayData(object)$call[het.nrm,sample]=="H",q.col,"red")
-    points(idx/selected.n,y.base+(assayData(object)$GSR[het.nrm,sample]*0.25)-0.25,pch="-",col=col)
-
+    segments(idx/selected.n,y.base+loh.offset,idx/selected.n,y.base+loh.offset+loh.range,lwd=loh.width,col=col)
+    #
     y.base<-y.base-3
   }
   # plot info in lower panel

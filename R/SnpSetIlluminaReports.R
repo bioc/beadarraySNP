@@ -269,7 +269,7 @@ reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,col
 }
 
 reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0,minProbes=10,maxY=2,...) {
-  if (!all(c("lai","nor.gt","loh") %in% assayDataElementNames(object)))
+  if (!all(c("lair","nor.gt","loh") %in% assayDataElementNames(object)))
     stop("'calculateLOH' should be performed before making this report")
   if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
     stop("'segmentate' should be performed before making this report")
@@ -295,15 +295,23 @@ reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0
       abline(v=xax$maxpos)
       points(assayData(object)$predicted[selection,smp],pch="-",col="red")
       #
-      abline(h=0.25)
+      # lesser allele intensity ratio
+      lair.offset<- -0.15
+      lair.range<- 0.40
+      abline(h=lair.offset+lair.range)
       het.nrm<-assayData(object)$nor.gt[selection,smp]=="TRUE"
       het.nrm<-names(het.nrm)[het.nrm]
       het.nrm<-het.nrm[!is.na(het.nrm)]
       idx<-which(featureNames(object)[selection] %in% het.nrm)
-      points(idx,assayData(object)$lai[het.nrm,smp]*0.5,pch="-",col="blue")
-      q.col<-ifelse(assayData(object)$GSR[het.nrm,smp]<0.8,"mediumblue","yellow")
+      points(idx,lair.offset+assayData(object)$lair[het.nrm,sample]*lair.range,pch="-",col="blue")
+      # 
+      # LOH + quality
+      loh.offset<- -0.25
+      loh.range<- 0.10
+      loh.width<- 1.5
+      q.col<-ifelse(assayData(object)$GSR[het.nrm,smp]<0.8,"mediumblue","green")
       col<-ifelse(assayData(object)$call[het.nrm,smp]=="H",q.col,"red")
-      points(idx,(assayData(object)$GSR[het.nrm,smp]*0.25)-0.25,pch="-",col=col)
+      segments(idx,loh.offset,idx,loh.offset+loh.range,lwd=loh.width,col=col)
     }
   }
   invisible()
