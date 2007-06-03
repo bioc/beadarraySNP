@@ -303,11 +303,11 @@ reportGenotypeSegmentation<-function(object,plotRaw=TRUE,subsample=NULL,panels=0
       het.nrm<-names(het.nrm)[het.nrm]
       het.nrm<-het.nrm[!is.na(het.nrm)]
       idx<-which(featureNames(object)[selection] %in% het.nrm)
-      points(idx,lair.offset+assayData(object)$lair[het.nrm,sample]*lair.range,pch="-",col="blue")
+      points(idx,lair.offset+assayData(object)$lair[het.nrm,smp]*lair.range,pch="_",col="blue")
       # 
       # LOH + quality
-      loh.offset<- -0.25
-      loh.range<- 0.10
+      loh.offset<- -0.24
+      loh.range<- 0.09
       loh.width<- 1.5
       q.col<-ifelse(assayData(object)$GSR[het.nrm,smp]<0.8,"mediumblue","green")
       col<-ifelse(assayData(object)$call[het.nrm,smp]=="H",q.col,"red")
