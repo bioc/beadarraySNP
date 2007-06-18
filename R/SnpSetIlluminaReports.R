@@ -135,7 +135,7 @@ getMidMaxIdx<-function(groups){
   data.frame(midpos,maxpos,row.names=lvls)
 }
 
-reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distance.min,
+reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSampleNames=4,distance.min,
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",lohwidth=1,segment=101,
   orientation=c("V","H"),...) {
   orientation<-match.arg(orientation)
@@ -144,8 +144,9 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distanc
   if (missing(distance.min)) distance.min=1e+9
   
   # determine gained and lost probes
-  plot(0,xlim=c(0,ncol(snpdata)),ylim=c(nrow(snpdata),0),type="n",xaxt="n",yaxt="n",xlab="",ylab="")
-  par(usr=c(0,ncol(snpdata),nrow(snpdata),0))
+  if (orientation=="V") ylim<-c(nrow(snpdata),0)  else ylim<-c(0,nrow(snpdata))
+  plot(0,xlim=c(0,ncol(snpdata)),ylim=ylim,type="n",xaxt="n",yaxt="n",xlab="",ylab="")
+  par(usr=c(0,ncol(snpdata),ylim))
   for (smp in 1:ncol(snpdata)) {
     regions<-getChangedRegions(assayData(snpdata)$intensity[,smp],segment=segment,...)
     if (!is.null(regions)) rect(smp-1,regions[,"start"]-1,smp-0.5,regions[,"end"],col=ifelse(regions[,"up"],upcolor,downcolor),border=NA)
@@ -170,14 +171,18 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distanc
 
   }
   abline(v=1:(ncol(snpdata)-1),col="grey")
+  samplenameAxis<-ifelse(orientation=="V",1,1)
+  groupingAxis<-ifelse(orientation=="V",3,1)
+  groupingLas<-ifelse(orientation=="V",0,2)
+  groupingLine<-ifelse(orientation=="V",NA,ifelse(plotSampleNames,sizeSampleNames,NA))
   if (!missing(grouping)) {
     xax<-getMidMaxIdx(grouping)
-    axis(3,xax$midpos,row.names(xax))
+    axis(groupingAxis,c(0,xax$midpos,ncol(snpdata)),c("",row.names(xax),""),line=groupingLine,las=groupingLas)
     abline(v=xax$maxpos)
   }
 
   if (plotSampleNames) {
-    axis(1,(1:ncol(snpdata))-0.5,sampleNames(snpdata),las=2,cex.axis=0.6)
+    axis(samplenameAxis,(1:ncol(snpdata))-0.5,sampleNames(snpdata),las=2,cex.axis=0.6)
   }
   yax<-getMidMaxIdx(reporterInfo(snpdata)$CHR)
   axis(2,yax$midpos,row.names(yax))

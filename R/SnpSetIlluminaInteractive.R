@@ -2,15 +2,15 @@
 interactiveCNselect<-function(object,sample=1,dnaIndex) {
   plotRaw<-TRUE
   cn.res<-createCNSummary(object,sample=sample,dnaIndex=dnaIndex)
-  cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw)
+  cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
   repeat {
     location<-locator(n=1)
     if (is.null(location)) break
     if (location$x>0.9 & location$y>0 & location$y<1) {
-      cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw)
+      cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
     } else if (location$x>0.9 & location$y>1 & location$y<2) {
       plotRaw<-!plotRaw
-      cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw)
+      cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
     } else {
       opa<-floor((17-location$y)/3)
       if (opa %in% 1:4) {
@@ -18,7 +18,7 @@ interactiveCNselect<-function(object,sample=1,dnaIndex) {
         increase<-((16-location$y) - opa*3) < 0
         # rect(0,0,0.9,2,col="white")
         cn.res<-alterCN(cn.res,opa,assayData(object)$predicted[snpid,sample],increase)
-        cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw)
+        cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
         text(0,1.6,paste("Chr",reporterInfo(object)[snpid,"CHR"],"position",reporterInfo(object)[snpid,"MapInfo"]),adj=0)
         text(0,1.2,paste("CN",assayData(object)$predicted[snpid,sample]),adj=0)
         text(0,0.8,paste("increase",increase),adj=0)
@@ -28,7 +28,7 @@ interactiveCNselect<-function(object,sample=1,dnaIndex) {
   cn.res
 }
 
-plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,...) {
+plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,interact=FALSE,...) {
   if (!all(c("lair","nor.gt","loh") %in% assayDataElementNames(object)))
     stop("'calculateLOH' should be performed before making this plot")
   if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
@@ -48,7 +48,8 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   # setup plot regions
   par(mar=c(1,3,3,1))
   plot(0,type="n",main=main,ylab="",yaxt="none",xlab="",xaxt="none")
-  par(usr=c(0,1,0,14))
+  if (interact) y.bottom<-0 else y.bottom<-1.2
+  par(usr=c(0,1,y.bottom,14))
   y.base<-12
   for (subsmp in levels(subsample)) {
     selection<-subsample == subsmp
@@ -103,10 +104,11 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   }
   # plot info in lower panel
   abline(h=2)
-  rect(c(0.9,0.9),c(0,1),c(1,1),c(1,2))
-  text(0.9,c(0.5,1.5),c("Redraw","Raw data"),pos=4)
-  text(0.02,0.4,paste("Target Index",cn.sum$dnaIndex,"Current index",format(getDNAindex(cn.sum))),adj=0)
-
+  if (interact) {
+    rect(c(0.9,0.9),c(0,1),c(1,1),c(1,2))
+    text(0.9,c(0.5,1.5),c("Redraw","Raw data"),pos=4)
+  }
+  text(0.02,y.bottom+0.4,paste("Target Index",cn.sum$dnaIndex,"Current index",format(getDNAindex(cn.sum),digits=2,nsmall=2)),adj=0)
   invisible(cn.sum)
 }
 
