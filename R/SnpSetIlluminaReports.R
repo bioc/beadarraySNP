@@ -177,7 +177,8 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
   groupingLine<-ifelse(orientation=="V",NA,ifelse(plotSampleNames,sizeSampleNames,NA))
   if (!missing(grouping)) {
     xax<-getMidMaxIdx(grouping)
-    axis(groupingAxis,c(0,xax$midpos,ncol(snpdata)),c("",row.names(xax),""),line=groupingLine,las=groupingLas)
+    axis(groupingAxis,xax$midpos,row.names(xax),line=groupingLine,las=groupingLas)
+    axis(groupingAxis,c(0,xax$maxpos),rep("",length(xax$maxpos)+1),line=groupingLine,las=groupingLas,tcl=0.25)
     abline(v=xax$maxpos)
   }
 
