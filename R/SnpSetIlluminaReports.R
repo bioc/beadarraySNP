@@ -1,20 +1,25 @@
 ## snp reports
 ## functions to report for all available data in a SnpSetIllumina object
-reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, plotLOH=c("none","marker","line","NorTum"), ...){
+reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
   # default grouping is by 4 in sequence of samples in snpdata
   plotLOH<-match.arg(plotLOH)
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
   # make sure chromosmes are sorted
   ind<-order(pData(featureData(snpdata))[,"CHR"],pData(featureData(snpdata))[,"MapInfo"])
   snpdata<-snpdata[ind,]
-  sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
+  if (is.null(sample.colors)) sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
   chroms<-unique(pData(featureData(snpdata))[,"CHR"])
   intensities<-assayData(snpdata)[["intensity"]]
   for (pageID in levels(factor(grouping))){
     samples<-sampleNames(snpdata)[grouping == pageID]
     if (length(samples)>0) {
       dchrompos<-prepareGenomePlot(pData(featureData(snpdata))[,c("CHR","MapInfo")],...)
+      marker.width<-(par("usr")[2]-par("usr"))/1000
+      tum.n<-sum(pData(snpdata)[samples,"NorTum"]!="N")
+      tum.i<-0
       for (i1 in 1:length(samples) ) {
+        if(tum.now <- (pData(snpdata)[samples[i1],"NorTum"]!="N")) tum.i<-tum.i+1
+        
         for (chrom in chroms) {
           probes<-pData(featureData(snpdata))[,"CHR"] == chrom
           if (sum(!is.na(intensities[probes,samples[i1]]))>10 ) {
@@ -23,15 +28,35 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
             if (plotLOH!="none") {
               probeNames<-featureNames(snpdata)[probes]
               if (plotLOH=="marker") {
-                chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[i1]])
-                LOH<-probeNames[chromhet>20]
-                if (length(LOH)>0) points(dchrompos[LOH,2],dchrompos[LOH,1]-0.3-(i1*0.05),pch="-",col=sample.colors[i1])
+                if ("nor.gt" %in% assayDataElementNames(snpdata)) {
+                  if (tum.now) {
+                    het.nrm<-assayData(snpdata)$nor.gt[probes,samples[i1]]=="TRUE"
+                    het.nrm<-names(het.nrm)[het.nrm]
+                    het.nrm<-het.nrm[!is.na(het.nrm)]
+                    if (length(het.nrm)>0) {
+                      idx<-match(het.nrm,featureNames(snpdata))
+                      # LOH + quality
+                      loh.range<- 0.15/tum.n
+                      loh.offset<- -0.62 + (loh.range+0.02)*tum.i
+                      loh.width<- 1.5
+                      ypos<-mean(dchrompos[idx,1],na.rm=TRUE)+loh.offset+loh.range/2
+                      lines(c(min(dchrompos[probes,2],na.rm=TRUE),max(dchrompos[probes,2],na.rm=TRUE)),c(ypos,ypos),lwd=loh.width,col=sample.colors[i1])
+                      q.col<-ifelse(assayData(snpdata)$GSR[idx,samples[i1]]<0.8,"mediumblue","green")
+                      q.col<-ifelse(assayData(snpdata)$call[idx,samples[i1]]=="H",q.col,"red")
+                      rect(dchrompos[idx,2]-marker.width,dchrompos[idx,1]+loh.offset,dchrompos[idx,2]+marker.width,dchrompos[idx,1]+loh.offset+loh.range,border=NA,col=q.col)
+                    }
+                  }
+                } else {
+                  chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[i1]])
+                  LOH<-probeNames[chromhet>20]
+                  if (length(LOH)>0) points(dchrompos[LOH,2],dchrompos[LOH,1]-0.3-(i1*0.05),pch="-",col=sample.colors[i1])
+                }
               }
               if (plotLOH=="line") {
                 chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[i1]])
                 lines(dchrompos[probes,2],dchrompos[probes,1]+scaleto(chromhet,c(10,40),c(0.1,-0.4)),col=sample.colors[i1],lty=2)
               }
-              if (plotLOH=="NorTum" && pData(snpdata)[samples[i1],"NorTum"]!="N") {
+              if (plotLOH=="NorTum" && tum.now) {
                 ## check availability of normal to compare with
                 n1<-grep("N",as.character(pData(snpdata)[samples,"NorTum"]))
                 if (length(n1)>0) {
@@ -132,7 +157,8 @@ getMidMaxIdx<-function(groups){
     midpos[lvl]<-mean(grep(paste("^",lvls[lvl],"$",sep=""),groups))-0.5
     maxpos[lvl]<-max(grep(paste("^",lvls[lvl],"$",sep=""),groups))
   }
-  data.frame(midpos,maxpos,row.names=lvls)
+  idx<-order(midpos)
+  data.frame(midpos,maxpos,row.names=lvls)[idx,]
 }
 
 reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSampleNames=4,distance.min,

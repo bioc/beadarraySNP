@@ -125,10 +125,13 @@ createCNSummary<-function(object,sample,dnaIndex,subsample="OPA"){
   deftarget<-round(dnaIndex*2)
   subsample<-beadarraySNP:::getSubsample(object,subsample)
   res<-NULL
+  getExisting<-FALSE
+  if (!is.null(assayData(object)$inferred)) if(!any(is.na(assayData(object)$inferred[,sample]))) getExisting<-TRUE
   for (subsmp in levels(subsample)) {
     selection<-subsample == subsmp
     tmp<-summary(as.factor(assayData(object)$predicted[selection,sample]))
-    res<-rbind(res,data.frame(opa=rep(subsmp,length(tmp)),count=tmp,intensity=names(tmp)))
+    if (getExisting) deftarget<-aggregate(assayData(object)$inferred[selection,sample],by=list(assayData(object)$predicted[selection,sample]),FUN=mean)[,2]
+    res<-rbind(res,data.frame(opa=rep(subsmp,length(tmp)),count=tmp,intensity=names(tmp),copynumber=deftarget))
   }
   # determine total copynumber of normal individual in this dataset (each SNP has same weight)
   copynumber.total.nrm<-sum(numericCHR(featureData(object)$CHR)<90)*2
@@ -136,14 +139,13 @@ createCNSummary<-function(object,sample,dnaIndex,subsample="OPA"){
   else gender<-"F"
   if (gender=="F") copynumber.total.nrm<-copynumber.total.nrm + sum(numericCHR(featureData(object)$CHR)==98)*2 else
      copynumber.total.nrm<-copynumber.total.nrm + sum(numericCHR(featureData(object)$CHR) %in% 98:99)
-  res$copynumber<-deftarget
+  #res$copynumber<-deftarget
   list(dnaIndex=dnaIndex,CN.total.nrm=copynumber.total.nrm,states=res)
 }
 
 alterCN<-function(cn.sum,opa,value,updown) {
   selection<-which(cn.sum$states$opa == levels(cn.sum$states$opa)[opa])
   idx<-which(cn.sum$states$intensity[selection]==value)
-
   if (idx>0) {
     if (updown) {
       cn.sum$states$copynumber[selection[idx]]<-cn.sum$states$copynumber[selection[idx]]+1
