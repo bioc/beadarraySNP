@@ -14,7 +14,7 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
     samples<-sampleNames(snpdata)[grouping == pageID]
     if (length(samples)>0) {
       dchrompos<-prepareGenomePlot(pData(featureData(snpdata))[,c("CHR","MapInfo")],...)
-      marker.width<-(par("usr")[2]-par("usr"))/1000
+      marker.width<-(par("usr")[2]-par("usr")[1])/1000
       tum.n<-sum(pData(snpdata)[samples,"NorTum"]!="N")
       tum.i<-0
       for (i1 in 1:length(samples) ) {
