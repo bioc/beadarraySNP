@@ -129,7 +129,7 @@
 \author{J. Oosting, based on Biobase eSet class }
 
 \seealso{
-  \code{\link[Biobase:eSet]{eSet}}}
+  \code{\link[Biobase:eSet]{eSet}}
 }
 
 \keyword{classes}

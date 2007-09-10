@@ -11,7 +11,8 @@
 
 \usage{
    read.SnpSetIllumina(samplesheet, manifestpath = NULL, reportpath = NULL,
-     rawdatapath = NULL, reportfile = NULL, briefOPAinfo=TRUE, verbose=FALSE)
+     rawdatapath = NULL, reportfile = NULL, briefOPAinfo=TRUE, verbose=FALSE,
+     readTIF=FALSE, ...)
 }
 \arguments{
    \item{samplesheet}{a data.frame or filename, contains the sample sheet}
@@ -28,6 +29,9 @@
      slot}
    \item{verbose}{logical, if \code{TRUE} then some extra information is given 
      during the import}
+   \item{readTIF}{logical, uses \code{beadarray} package and raw TIF files to read data}
+   \item{\dots}{arguments are forwarded to \code{readIllumina} and can be used to perform
+     bead-level normalization} 
 }
 
 \details{
@@ -76,7 +80,7 @@
 \author{Jan Oosting}
 
 \seealso{
-   \code{\link{SnpSetIllumina-class}}}
+   \code{\link{SnpSetIllumina-class}}
 }
 \examples{
 # read a SnpSetIllumina object using example textfiles in data directory

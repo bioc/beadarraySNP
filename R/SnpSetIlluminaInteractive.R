@@ -1,5 +1,17 @@
 # Interactive plots
 interactiveCNselect<-function(object,sample=1,dnaIndex) {
+
+  getIdGoldenGate4OPA<-function(opa,xpos) {
+    # retriev the probe that belongs to a certain position within the plot
+    subsample<-getSubsample(object,"OPA")
+    subsmp<-levels(subsample)[opa]
+    selection<-subsample == subsmp
+    chrs<-summary(as.factor(featureData(object)$CHR[selection]))
+    selection<-featureNames(object)[selection & featureData(object)$CHR %in% names(chrs[chrs>=10])]
+    selection[ceiling(xpos*length(selection))]
+  }
+
+
   plotRaw<-TRUE
   cn.res<-createCNSummary(object,sample=sample,dnaIndex=dnaIndex)
   cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
@@ -33,7 +45,7 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
     stop("'calculateLOH' should be performed before making this plot")
   if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
     stop("'segmentate' should be performed before making this plot")
-  subsample<-beadarraySNP:::getSubsample(object,"OPA")
+  subsample<-getSubsample(object,"OPA")
   if (length(sample)!=1) stop("Only 1 sample can be handled at a time")
   if (is.numeric(sample)) {
     if(sample<1 | sample>ncol(object)) stop(paste("sample",sample,"is not between 1 and ",ncol(object)))
@@ -47,7 +59,7 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   }
   # setup plot regions
   par(mar=c(1,3,3,1))
-  plot(0,type="n",main=main,ylab="",yaxt="none",xlab="",xaxt="none")
+  plot(0,type="n",main=main,ylab="",yaxt="none",xlab="",xaxt="none",...)
   if (interact) y.bottom<-0 else y.bottom<-1.2
   par(usr=c(0,1,y.bottom,14))
   y.base<-12
@@ -112,18 +124,9 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   invisible(cn.sum)
 }
 
-getIdGoldenGate4OPA<-function(object,opa,xpos) {
-  subsample<-beadarraySNP:::getSubsample(object,"OPA")
-  subsmp<-levels(subsample)[opa]
-  selection<-subsample == subsmp
-  chrs<-summary(as.factor(featureData(object)$CHR[selection]))
-  selection<-featureNames(object)[selection & featureData(object)$CHR %in% names(chrs[chrs>=10])]
-  selection[ceiling(xpos*length(selection))]
-}
-
-createCNSummary<-function(object,sample,dnaIndex,subsample="OPA"){
+createCNSummary<-function(object,sample,dnaIndex=1,subsample="OPA"){
   deftarget<-round(dnaIndex*2)
-  subsample<-beadarraySNP:::getSubsample(object,subsample)
+  subsample<-getSubsample(object,subsample)
   res<-NULL
   getExisting<-FALSE
   if (!is.null(assayData(object)$inferred)) if(!any(is.na(assayData(object)$inferred[,sample]))) getExisting<-TRUE
@@ -139,7 +142,6 @@ createCNSummary<-function(object,sample,dnaIndex,subsample="OPA"){
   else gender<-"F"
   if (gender=="F") copynumber.total.nrm<-copynumber.total.nrm + sum(numericCHR(featureData(object)$CHR)==98)*2 else
      copynumber.total.nrm<-copynumber.total.nrm + sum(numericCHR(featureData(object)$CHR) %in% 98:99)
-  #res$copynumber<-deftarget
   list(dnaIndex=dnaIndex,CN.total.nrm=copynumber.total.nrm,states=res)
 }
 
@@ -172,7 +174,7 @@ setRealCN<-function(object,sample,cn.sum) {
   } else {
     inferred<-assayData(object)$inferred
   }
-  subsample<-beadarraySNP:::getSubsample(object,"OPA")
+  subsample<-getSubsample(object,"OPA")
   for (subsmp in levels(subsample)) {
     selection<-subsample == subsmp
     # cn from user
@@ -180,7 +182,7 @@ setRealCN<-function(object,sample,cn.sum) {
     st.pred<-cn.sum$states$intensity[st.sel]
     st.tcn<-cn.sum$states$copynumber[st.sel]
     trueCN<-st.tcn[match(assayData(object)$predicted[selection,sample],st.pred)]
-    inferred[selection,smp]<-trueCN
+    inferred[selection,sample]<-trueCN
   }
   res<-object
   assayData(res)$inferred<-inferred

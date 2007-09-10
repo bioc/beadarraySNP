@@ -19,7 +19,7 @@ smoothed.intensity(snpdata, smooth.lambda = 4, tau = 0.5)
 }
 \author{Jan Oosting}
 \seealso{
-   \code{\link{SnpSetIllumina-class}}}
+   \code{\link{SnpSetIllumina-class}}
 }
 \examples{
 }

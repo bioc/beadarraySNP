@@ -5,7 +5,7 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
   # add states and predicted copy numbers to assayData
   method<-match.arg(method)
   if (!require(snapCGH))
-    stop("The snapCGH is not installed")
+    stop("package snapCGH is not installed")
   sl<-convert2SegList(object,normalizedTo=normalizedTo,doLog=doLog)
   subsample<-getSubsample(object,subsample)
   sl$genes<-cbind(sl$genes,subsample=subsample,
@@ -21,11 +21,11 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
     switch(method, DNACopy = {
       segm<-runDNAcopy(sl[selection,])
     }, HMM = {
-      segm<-runHomHMM(sorted.sl[selection,], criteria = "AIC")
+      segm<-runHomHMM(sl[selection,], criteria = "AIC")
     }, BioHMM = {
-      segm<-runBioHMM(sorted.sl[selection,])
+      segm<-runBioHMM(sl[selection,])
     }, GLAD = {
-      segm<-runGLAD(sorted.sl[selection,])
+      segm<-runGLAD(sl[selection,])
     })
     if (doMerge)
       segm<-mergeStates(segm)

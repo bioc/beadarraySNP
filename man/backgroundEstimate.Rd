@@ -46,7 +46,7 @@
 \author{Jan Oosting}
 
 \seealso{
-   \code{\link{SnpSetIllumina-class}}, \code{\link{backgroundCorrect.SNP}}}
+   \code{\link{SnpSetIllumina-class}}, \code{\link{backgroundCorrect.SNP}}
 }
 \examples{
 

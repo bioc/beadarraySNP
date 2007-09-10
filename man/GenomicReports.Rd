@@ -12,8 +12,9 @@
 reportChromosomesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2, 
   smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), ...)
 reportSamplesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2, 
-  smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), ...)
-reportGenomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, distance.min,
+  smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), 
+  sample.colors=NULL, ...)
+reportGenomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, sizeSampleNames=4, distance.min,
   upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", lohwidth=1,segment=101,
   orientation=c("V","H"),...)
 reportChromosomeGainLossLOH(snpdata,grouping,plotSampleNames=FALSE,distance.min,
@@ -31,15 +32,17 @@ reportGenomeIntensityPlot(snpdata,normalizedTo=NULL,subsample=NULL,col="black",.
   \item{smooth.lambda}{smoothing parameter for \code{\link[quantsmooth]{quantsmooth}}}
   \item{ridge.kappa}{smoothing parameter for \code{\link[quantsmooth]{quantsmooth}}}
   \item{plotLOH}{indicate regions or probes with LOH, see details}
+  \item{sample.colors}{vector of color}
   \item{plotSampleNames}{logical}
+  \item{sizeSampleNames}{numeric, margin size for samplenames}
   \item{distance.min}{numerical}
   \item{upcolor}{color}
-  \item{downcolor}{}
-  \item{lohcolor}{}
-  \item{hetcolor}{}
+  \item{downcolor}{color}
+  \item{lohcolor}{color}
+  \item{hetcolor}{color}
   \item{lohwidth}{}
-  \item{segment}{}
-  \item{orientation}{}
+  \item{segment}{integer}
+  \item{orientation}{["V","H"], vertical or horizontal orientation of plot}
   \item{proportion}{}
   \item{subsample}{}
   \item{col}{}

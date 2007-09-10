@@ -53,7 +53,7 @@ of normal and tumor cells.
 \author{Jan Oosting}
 
 \seealso{
-   \code{\link{SnpSetIllumina-class}}}
+   \code{\link{SnpSetIllumina-class}}
 }
 \examples{
   data(chr17.260)

@@ -12,9 +12,9 @@
    normalizeBetweenAlleles.SNP(object,method=c("quantile"),subsample="OPA")
 }
 \arguments{
-   \item{object}{\code{object} class SnpSetIllumina}
-   \item{method}{\code{method} type of normalization}
-   \item{subsample}{\code{subsample} factor or column name in \code{featureData} slot}
+   \item{object}{class \code{SnpSetIllumina}}
+   \item{method}{\code{char}, type of normalization}
+   \item{subsample}{\code{factor} with length number of features in object or \code{char},column name in \code{featureData} slot}
 }
 
 \details{

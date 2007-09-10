@@ -1,46 +1,20 @@
 \name{getDNAindex}
 \alias{getDNAindex}
-%- Also NEED an '\alias' for EACH other topic documented here.
-\title{ ~~function to do ... ~~ }
+\title{ Calculate the DNA index based on assigned copy number values to probes}
 \description{
-  ~~ A concise (1-5 lines) description of what the function does. ~~
+  Calculate the DNA index based on assigned copy number values to probes
 }
 \usage{
 getDNAindex(cn.sum)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{cn.sum}{ ~~Describe \code{cn.sum} here~~ }
+  \item{cn.sum}{list with elements \code{dnaIndex, CN.total.nrm, states}, see \code{\link{createCNSummary}}}
 }
 \details{
-  ~~ If necessary, more details than the description above ~~
 }
 \value{
-  ~Describe the value returned
-  If it is a LIST, use
-  \item{comp1 }{Description of 'comp1'}
-  \item{comp2 }{Description of 'comp2'}
-  ...
+  scalar. DNA index of an unaffected sample is 1
 }
-\references{ ~put references to the literature/web site here ~ }
-\author{ ~~who you are~~ }
-\note{ ~~further notes~~ 
-
- ~Make other sections like Warning with \section{Warning }{....} ~
-}
-\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (cn.sum) 
-{
-    sum(cn.sum$states$count * cn.sum$states$copynumber)/cn.sum$CN.total.nrm
-  }
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\author{Jan Oosting}
+\seealso{\code{\link{createCNSummary}, \link{plotGoldenGate4OPA}}}
+\keyword{manip}
