@@ -23,7 +23,7 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
         for (chrom in chroms) {
           probes<-pData(featureData(snpdata))[,"CHR"] == chrom
           if (sum(!is.na(intensities[probes,samples[i1]]))>10 ) {
-            smoothed<-quantsmooth(intensities[probes,samples[i1]],smooth.lambda=smooth.lambda,ridge.kappa=ridge.kappa)
+            smoothed<-quantsmooth(intensities[probes,samples[i1]],smooth.lambda=smooth.lambda,ridge.kappa=ridge.kappa,segment=151)
             lines(dchrompos[probes,2],dchrompos[probes,1]+(smoothed-normalizedTo)/normalizedTo,col=sample.colors[i1],lwd=1.5)
             if (plotLOH!="none") {
               probeNames<-featureNames(snpdata)[probes]

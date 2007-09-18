@@ -268,12 +268,16 @@ normalizeLoci.SNP <- function(
 
   method<-match.arg(method)
 
+  # Select the normal samples for reference
   if (length(NorTum)!=ncol(object)) {
     if (is.null(NorTum) | !(NorTum %in% colnames(pData(object)))) NorTum<-rep(TRUE,ncol(object))
     else NorTum<-pData(object)[,NorTum]
   }
   if (!is.logical(NorTum)) NorTum<-NorTum=="N"
+  # Use all samples as references when there are no normal samples
+  if (!any(NorTum)) NorTum<-!NorTum
 
+  # treat sex chromosomes dependent on, assume F(emale) by default
   if (length(Gender)!=ncol(object)) {
     if (is.null(Gender) | !(Gender %in% colnames(pData(object)))) Gender<-rep(TRUE,ncol(object))
     else Gender<-pData(object)[,Gender]
@@ -309,7 +313,7 @@ normalizeLoci.SNP <- function(
     G<-sweep(assayData(object)$G,1,probe.med,FUN="/")*normalizeTo
 
   }, paired = {
-    # use Subject to make Tumor/Normal pairs
+    # TODO: use Subject to make Tumor/Normal pairs
   })
 
   res<-object

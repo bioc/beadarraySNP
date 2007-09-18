@@ -171,7 +171,12 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (length(skip) == 0) stop("Cannot find \"[Data]\" in samplesheet file")
     samples<-read.table(samplesheet, skip=skip, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character")
   }
-  samples<-cbind(samples,validn=0,Row=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),3,4)),Col=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),8,9)))
+  req_cols<-c("Sample_Name","Sentrix_Position","Sample_Plate","Pool_ID","Sentrix_ID" )
+  smpcol<-!(req_cols %in% colnames(samples))
+  if (any(smpcol)) 
+    stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
+  if (nchar(samples[1,"Sentrix_Position"])==9) # Sentrix arrays on 96 well sample plate
+    samples<-cbind(samples,validn=0,Row=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),3,4)),Col=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),8,9)))
   if (length(unique(samples[,"Sample_Plate"]))>1 | length(unique(samples[,"Pool_ID"]))>1 | length(unique(samples[,"Sentrix_ID"]))>1) stop("Either Sample_Plate or Pool_ID or Sentrix_ID values in samplesheet are not same for all samples")
   OPAname<-as.character(samples[1,"Pool_ID"])
   if (verbose) cat(nrow(samples),"samples in sheet\n")
@@ -277,10 +282,10 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (length(skip) == 0) stop("Cannot find \"[Data]\" in report file")
     alldata<-read.table(reportfile, skip=skip, header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE,colClasses="character")
     # Integrity checks
-    essentialcols<-c("SNP Name","Sample ID","GC Score","Allele1 - AB","Allele2 - AB","GT Score","Cluster Sep","Theta","R","X Raw","Y Raw")
+    essentialcols<-c("SNP Name","Sample ID","GC Score","Allele1 - AB","Allele2 - AB","GT Score","X Raw","Y Raw")
     if (chrompos.fromReport) essentialcols<-c(essentialcols,c("Chr","Position"))
     foundcols<-essentialcols %in% colnames(alldata)
-    if (!all(foundcols)) stop ("Columns:",paste(essentialcols[!foundcols])," are missing in the report file")
+    if (!all(foundcols)) stop ("Columns:",paste(essentialcols[!foundcols],collapse=", ")," are missing in the report file")
     m<-length(unique(alldata[,"SNP Name"]))
     datasamples<-unique(alldata[,"Sample ID"])
     n<-length(datasamples)
@@ -299,8 +304,9 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     GenScore<-matrix(as.numeric(alldata[,"GC Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     GTS<-matrix(as.numeric(alldata[,"GT Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     GTS<-apply(GTS,1,max,na.rm=TRUE)
+    # Combine results from single alleles 
     GenCall<-paste(alldata[,"Allele1 - AB"],alldata[,"Allele2 - AB"],sep="")
-    GenCall<-matrix(sub("AA","A",sub("BB","B",sub("AB","H",GenCall))),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+    GenCall<-matrix(sub("AA","A",sub("BB","B",sub("AB","H",sub("--","-",GenCall)))),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     # Select only data from samplesheet
     selected<-paste(samples[,"Sentrix_ID"],samples[,"Sentrix_Position"],sep="_")
     G<-G[,selected]
@@ -312,9 +318,12 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     colnames(GenScore)<-samples[,"Sample_Name"]
     colnames(GenCall)<-samples[,"Sample_Name"]
     if (chrompos.fromReport) {
-      CHR<-matrix(as.numeric(alldata[,"Chr"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      CHR<-matrix(alldata[,"Chr"],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
       MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-      SNPinfo<-data.frame(CHR=CHR[,1,drop=FALSE],MapInfo=MapInfo[,1],GTS=GTS)
+      SNPinfo<-data.frame(CHR[,1,drop=FALSE],MapInfo[,1],GTS,OPAname)
+      # assigning colnames in previous line (data.frame() ) does not work because the first column retains its column name through drop=FALSE
+      # drop=FALSE is used to retain the rownames
+      colnames(SNPinfo)<-c("CHR","MapInfo","GTS","OPA")
     } else {
       SNPinfo<-SNPinfo[rownames(G),]
       SNPinfo<-cbind(SNPinfo,GTS=GTS)
