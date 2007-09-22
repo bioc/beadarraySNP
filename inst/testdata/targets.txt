@@ -1,5 +1,5 @@
-"NorTum"	"Isolate"	"Gender"	Sample	Source
-106NB	"N"	"B"	F	106	Leukocyte DNA
-106TV	"T"	"F"	F	106	Fresh frozen Tumor DNA
-108NB	"N"	"B"	M	108	Leukocyte DNA
-108TV	"T"	"F"	M	108	Fresh frozen Tumor DNA
+NorTum	Isolate	Gender	Sample	Source
+106NB	N	B	F	106	Leukocyte DNA
+106TV	T	F	F	106	Fresh frozen Tumor DNA
+108NB	N	B	M	108	Leukocyte DNA
+108TV	T	F	M	108	Fresh frozen Tumor DNA
