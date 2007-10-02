@@ -11,7 +11,6 @@ interactiveCNselect<-function(object,sample=1,dnaIndex) {
     selection[ceiling(xpos*length(selection))]
   }
 
-
   plotRaw<-TRUE
   cn.res<-createCNSummary(object,sample=sample,dnaIndex=dnaIndex)
   cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
@@ -26,7 +25,7 @@ interactiveCNselect<-function(object,sample=1,dnaIndex) {
     } else {
       opa<-floor((17-location$y)/3)
       if (opa %in% 1:4) {
-        snpid<-getIdGoldenGate4OPA(object,opa,location$x)
+        snpid<-getIdGoldenGate4OPA(opa,location$x)
         increase<-((16-location$y) - opa*3) < 0
         # rect(0,0,0.9,2,col="white")
         cn.res<-alterCN(cn.res,opa,assayData(object)$predicted[snpid,sample],increase)
