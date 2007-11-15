@@ -278,7 +278,7 @@ pdfChromosomeGainLossLOH<-function(object,filename,...) {
   dev.off()
 }
 
-reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,col="black",...) {
+reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,smoothing=c("mean","quant"),dot.col="black",smooth.col="red",...) {
   if ( !("intensity" %in% assayDataElementNames(snpdata))) snpdata<-RG2polar(snpdata)
   if (is.null(subsample)) {
     ind<-order(numericCHR(pData(featureData(snpdata))[,"CHR"]),pData(featureData(snpdata))[,"MapInfo"])
@@ -292,11 +292,24 @@ reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,col
     snpdata<-snpdata[ind,]
   }
   # find boundaries between subsamples
-  vertlines<-which(subsample[-1]!=subsample[-length(subsample)])+0.5
+  xax<-beadarraySNP:::getMidMaxIdx(subsample)
+  if (smoothing=="mean") {
+    avg.intensity<-aggregate(assayData(snpdata)$intensity,by=list(subsample),FUN=mean,na.rm=TRUE)
+    idx<-match(rownames(xax),avg.intensity[,1])
+    avg.intensity<-avg.intensity[idx,]
+  }
   for (sample in 1:length(sampleNames(snpdata))) {
-    plot(assayData(snpdata)[["intensity"]][,sample],col=1,pch=".",ylab="intensity",xlab="",
-         main=sampleNames(snpdata)[sample],xaxt="n",...)
-    abline(v=vertlines)
+    plot(1,ylab="intensity",xlab="",main=sampleNames(snpdata)[sample],xaxt="n",type="n")
+    par(usr=c(1,dim(snpdata)[1],min(assayData(snpdata)[["intensity"]][,sample],na.rm=TRUE),max(assayData(snpdata)[["intensity"]][,sample],na.rm=TRUE)))
+    if (!is.null(normalizedTo)) abline(h=normalizedTo,col="grey")
+    axis(1,xax$midpos,row.names(xax))
+    abline(v=xax$maxpos)
+    points(assayData(snpdata)[["intensity"]][,sample],col=dot.col,pch=".",xlab="",...)
+    if (smoothing=="mean") {
+      segments(c(0,xax$maxpos[-length(xax$maxpos)]),avg.intensity[,sample+1],xax$maxpos,avg.intensity[,sample+1],col=smooth.col)
+    } else if (smoothing=="quant") {
+      lines(1:dim(snpdata)[1],quantsmooth(assayData(snpdata)[["intensity"]][,sample],smooth.lambda=4,segment=101),col=smooth.col)
+    }
   }
 }
 

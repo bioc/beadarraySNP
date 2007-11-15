@@ -139,7 +139,7 @@ setMethod("combine", c("SnpSetIllumina", "SnpSetIllumina"), function(x, y, ...) 
   newdimnames<-list(union(featureNames(x),featureNames(y)),union(sampleNames(x),sampleNames(y)))
   x <- .mergeAssayData(x, y, newdimnames)
   # a bit of a hack to only keep the union, and discard double entries
-  phenoData(x) <- .mergeAnnotateddata(x, y, newdimnames[[2]])
+  phenoData(x) <- .mergeAnnotateddata(phenoData(x), phenoData(y), newdimnames[[2]])
   experimentData(x) <- combine(experimentData(x),experimentData(y))
   featureData(x)<-.mergeAnnotateddata(featureData(x), featureData(y), newdimnames[[1]])
     
@@ -308,7 +308,12 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     GenCall<-paste(alldata[,"Allele1 - AB"],alldata[,"Allele2 - AB"],sep="")
     GenCall<-matrix(sub("AA","A",sub("BB","B",sub("AB","H",sub("--","-",GenCall)))),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     # Select only data from samplesheet
-    selected<-paste(samples[,"Sentrix_ID"],samples[,"Sentrix_Position"],sep="_")
+    if (all(samples[, "Sample_Name"] %in% colnames(G))){
+      selected<-samples[, "Sample_Name"]
+    } else { # default naming of columns in beadstudio
+      selected <- paste(samples[, "Sentrix_ID"], samples[,
+          "Sentrix_Position"], sep = "_")
+    }
     G<-G[,selected]
     R<-R[,selected]
     GenScore<-GenScore[,selected]
