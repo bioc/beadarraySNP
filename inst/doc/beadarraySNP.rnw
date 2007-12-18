@@ -116,7 +116,7 @@ Based on these findings, low quality samples can be removed from the experiment
 
 \section{Normalization}
 
-Normalization to calculate copy number is a multi-step process. In Ref. we have 
+Normalization to calculate copy number is a multi-step process. In Oosting(2007) we have 
 determined that the following procedure provides the optimal strategy:
 \begin{enumerate}
 \item Perform quantile normalization between both colors of a sample. This is allowed
@@ -153,6 +153,12 @@ reportSamplesSmoothCopyNumber(SNPnrm, normalizedTo=2, paintCytobands =TRUE, smoo
 
 By using the \Rfunarg{organism} a figure is created that shows all chromosomes in 2 
 columns. Experimental data is plotted wherever it is available in the dataset.
+\section{References}
+
+Oosting J, Lips EH, van Eijk R, Eilers PH, Szuhai K, Wijmenga C, Morreau H, van Wezel T.
+High-resolution copy number analysis of paraffin-embedded archival tissue using SNP BeadArrays.
+Genome Res. 2007 Mar;17(3):368-76. Epub 2007 Jan 31. 
+
 \section{Session Information}
 
 The version number of R and packages loaded for generating the vignette were:

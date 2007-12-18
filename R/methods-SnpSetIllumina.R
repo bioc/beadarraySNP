@@ -407,3 +407,20 @@ IlluminaGetGencalls<- function(path,OPAname) {
     list("genotypes"=genotypes,"callscores"=callscores,"locusinfo"=locusinfo)
   } else NULL
 }
+
+Sample_Map2Samplesheet<-function(samplemapfile,saveas="") {
+  # read a SampleMAP file created by beadstudio and convert it to a samplesheet that is usable for read.SnpSetIllumina
+  # just assume this is tab-separated
+  ss<-read.table(samplemapfile,sep="\t",as.is=TRUE,header = TRUE, check.names = FALSE,colClasses="character")
+  req_cols<-c("Index","Name","ID","Plate","SentrixPosition")
+  smpcol<-!(req_cols %in% colnames(ss))
+  if (any(smpcol)) 
+    stop("Sample Map error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
+  colnames(ss)[match(c("Name","Plate","SentrixPosition"),colnames(ss))]<-c("Sample_Name","Sample_Plate","Sentrix_Position")
+  # add some required columns
+  ss<-cbind(ss,Pool_ID="pool_id",Sentrix_ID="sentrix_id")
+  # fill in empty sample_names
+  empty_sampleName<-ss$Sample_Name==""
+  if (any(empty_sampleName)) ss$Sample_Name[empty_sampleName]<-ss$ID
+  return(ss)
+}
