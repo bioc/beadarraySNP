@@ -167,6 +167,11 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
   orientation<-match.arg(orientation)
   ind<-order(numericCHR(reporterInfo(snpdata)$CHR),reporterInfo(snpdata)$MapInfo)
   snpdata<-snpdata[ind,]
+  if (!is.null(grouping)) {
+    ind<-order(grouping)
+    snpdata<-snpdata[,ind]
+    grouping<-grouping[ind]
+  }
   if (missing(distance.min)) distance.min=1e+9
   
   # determine gained and lost probes
@@ -299,10 +304,11 @@ reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,smo
     avg.intensity<-avg.intensity[idx,]
   }
   for (sample in 1:length(sampleNames(snpdata))) {
-    plot(1,ylab="intensity",xlab="",main=sampleNames(snpdata)[sample],xaxt="n",type="n")
+    plot(1,ylab="intensity",xlab="",main=sampleNames(snpdata)[sample],xaxt="n",yaxt="n",type="n")
     par(usr=c(1,dim(snpdata)[1],min(assayData(snpdata)[["intensity"]][,sample],na.rm=TRUE),max(assayData(snpdata)[["intensity"]][,sample],na.rm=TRUE)))
     if (!is.null(normalizedTo)) abline(h=normalizedTo,col="grey")
     axis(1,xax$midpos,row.names(xax))
+    axis(2) # par(usr) does not recompute/relocate axis
     abline(v=xax$maxpos)
     points(assayData(snpdata)[["intensity"]][,sample],col=dot.col,pch=".",xlab="",...)
     if (smoothing=="mean") {

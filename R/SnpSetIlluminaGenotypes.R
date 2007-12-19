@@ -69,12 +69,11 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
   res
 }
 
-
-
-  
 heterozygosity <-function(genotype,decay=0.8,threshold=0.1) {
   # find stretches of homozygosity
   # depending on decay and treshold low-frequent heterozygous loci are skipped
+  nas<-is.na(genotype)
+  genotype<-genotype[!nas]
   if (is.logical(genotype)) heterozygous<-genotype
   else heterozygous<-genotype=="AB" | genotype=="H"
   m<-length(heterozygous)
@@ -102,7 +101,9 @@ heterozygosity <-function(genotype,decay=0.8,threshold=0.1) {
     }
     heterozygous.dist[i]<-sum(updist,downdist)
   }
-  heterozygous.dist
+  res<-rep(NA,length(nas))
+  res[!nas]<-heterozygous.dist
+  res
 }
 
 compareGenotypes<-function(genotypeT,genotypeN) {
