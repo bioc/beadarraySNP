@@ -5,7 +5,7 @@
   Retrieves QC and identifying information of Illumina Sentrix arrays. 
 }
 \usage{
-calculateQCarray(object, QCobject = NULL)
+calculateQCarray(object, QCobject = NULL, arrayType="Sentrix96")
 }
 
 \arguments{
@@ -13,6 +13,7 @@ calculateQCarray(object, QCobject = NULL)
 	      of a single Sentrix array and a single type of OPA panel}
   \item{QCobject}{\code{QCIllumina-class} object: If set the information in the object 
 	      is amended with data from the SnpSetIllumina object}
+  \item{arrayType}{character, see \code{\link{arrayType}}}
 }
 \details{
   Sample summary values are mapped to the physical layout of the 

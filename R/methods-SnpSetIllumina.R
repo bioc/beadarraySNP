@@ -422,5 +422,9 @@ Sample_Map2Samplesheet<-function(samplemapfile,saveas="") {
   # fill in empty sample_names
   empty_sampleName<-ss$Sample_Name==""
   if (any(empty_sampleName)) ss$Sample_Name[empty_sampleName]<-ss$ID
+  if (! saveas=="") {
+    cat("[Header]\nInvestigator Name,\nProject Name,\nExperiment Name,\nDate,\n[Data]\n",file=saveas)
+    write.table(ss,row.names=FALSE,sep=",",quote=FALSE,file=saveas,append=TRUE)
+  }
   return(ss)
 }

@@ -21,6 +21,15 @@ arrayID(object)<- value
   \item{object}{Object, possibly derived from class \code{\link{QCIllumina-class}}.}
   \item{value}{}
 }
+\details{
+Currently the following types of arrays are supported
+
+"Sentrix96": Sentrix array, 12 columns, 8 rows
+
+"Sentrix16": Sentrix array, 2 columns, 8 rows
+
+"Slide12"  : Slide with 12 samples
+}
 \value{
   \code{arrayType} and \code{arrayID} return a \code{character} value
 }

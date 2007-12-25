@@ -9,18 +9,19 @@
   create reports for all samples in a dataset
 }
 \usage{
-reportChromosomesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2, 
-  smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), ...)
-reportSamplesSmoothCopyNumber(snpdata, grouping, normalizedTo = 2, 
-  smooth.lambda = 2, ridge.kappa = 0, plotLOH = c("none", "marker", "line", "NorTum"), 
+reportChromosomesSmoothCopyNumber(snpdata, grouping, normalizedTo=2, 
+  smooth.lambda=2, ridge.kappa=0, plotLOH=c("none", "marker", "line", "NorTum"), ...)
+reportSamplesSmoothCopyNumber(snpdata, grouping, normalizedTo=2, 
+  smooth.lambda=2, ridge.kappa=0, plotLOH=c("none", "marker", "line", "NorTum"), 
   sample.colors=NULL, ...)
-reportGenomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, sizeSampleNames=4, distance.min,
-  upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", lohwidth=1,segment=101,
-  orientation=c("V","H"),...)
-reportChromosomeGainLossLOH(snpdata,grouping,plotSampleNames=FALSE,distance.min,
-  upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", proportion=0.2, plotLOH=TRUE,
-  segment=101,...)  
-reportGenomeIntensityPlot(snpdata,normalizedTo=NULL,subsample=NULL,col="black",...)
+reportGenomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, sizeSampleNames=4, 
+  distance.min, upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", 
+  lohwidth=1, segment=101, orientation=c("V","H"), ...)
+reportChromosomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, distance.min,
+  upcolor="red", downcolor="blue", lohcolor="grey", hetcolor="lightgrey", proportion=0.2, 
+  plotLOH=TRUE, segment=101, ...)  
+reportGenomeIntensityPlot(snpdata, normalizedTo=NULL, subsample=NULL, smoothing=c("mean", "quant"),
+  dot.col="black", smooth.col="red", ...)
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -45,7 +46,9 @@ reportGenomeIntensityPlot(snpdata,normalizedTo=NULL,subsample=NULL,col="black",.
   \item{orientation}{["V","H"], vertical or horizontal orientation of plot}
   \item{proportion}{}
   \item{subsample}{}
-  \item{col}{}
+  \item{smoothing}{Type of smoothing per chromosome}
+  \item{dot.col}{color}
+  \item{smooth.col}{color}
   \item{\dots}{arguments are forwarded to \code{plot} or \code{getChangedRegions}}
 }
 \details{
