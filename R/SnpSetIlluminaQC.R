@@ -78,3 +78,37 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
   QCobject
 }
 
+BeadstudioQC<-function(object,QClist=list(),arrayType="Sentrix96") {
+  # reconstruct chips from beadstudio samplesheet 
+  # create a list with QCIllumina objects for each chip
+  # split in OPA panels and chips
+  OPAs<-annotation(object)
+  for (OPA in 1:length(OPAs)) {
+    snps<-pData(featureData(object))$OPA == OPAs[OPA]
+    SentrixBarcode<-pData(object)[,paste("SentrixBarcode",LETTERS[OPA],sep="_")]
+    chips<-unique(SentrixBarcode)
+    for (chip in 1:length(chips)) {
+      if(chips[chip] %in% names(QClist)) qcObj<-QClist[[chips[chip]]] else qcObj<-NULL
+      curObj<-object[snps,chips == chips[chip]]
+      SentrixBarcode<-pData(curObj)[,paste("SentrixBarcode",LETTERS[OPA],sep="_")]
+      SentrixPosition<-pData(curObj)[,paste("SentrixPosition",LETTERS[OPA],sep="_")]
+      annotation(curObj)<-OPAs[OPA]
+      if (nchar(SentrixPosition[1])==9) {# Sentrix arrays on 96 well sample plate
+        Row<-as.numeric(substr(as.character(SentrixPosition),3,4))
+        Col<-as.numeric(substr(as.character(SentrixPosition),8,9))
+        phenoData(curObj)<-new("AnnotatedDataFrame",data=cbind(pData(curObj),Row=Row,Col=Col,Sentrix_Position=SentrixPosition,Sentrix_ID=SentrixBarcode))
+      } else {
+        phenoData(curObj)<-new("AnnotatedDataFrame",data=cbind(pData(curObj),Sentrix_Position=SentrixPosition,Sentrix_ID=SentrixBarcode))
+      }
+      
+      QClist[[chips[chip]]]<-calculateQCarray(curObj,qcObj,arrayType)
+    }
+  }
+  return(QClist)
+}
+
+pdfBeadstudioQC<-function(QClist,basename="beadstudio",by=10) {
+  for (qc in names(QClist)) 
+    pdfQC(QClist[[qc]],filename=paste(basename,"_",qc,".pdf",sep=""))
+
+}

@@ -1,5 +1,6 @@
 \name{QCIllumina-class}
 \docType{class}
+\alias{QCIllumina}
 \alias{QCIllumina-class}
 \alias{arrayID,QCIllumina-method}
 \alias{arrayID<-,QCIllumina-method}
@@ -20,14 +21,14 @@ samples)}, but are usually created by \code{\link{calculateQCarray}}.
 
 \section{Slots}{
 	 \describe{
-    \item{\code{arrayType}:}{Object of class \code{"character"} Type of array. Currently restricted to \code{"Sentrix"} }
-    \item{\code{arrayID}:}{Object of class \code{"character"} Array ID }
-    \item{\code{intensityMed}:}{Object of class \code{"matrix"} Median of intensity of samples }
-    \item{\code{greenMed}:}{Object of class \code{"matrix"} Median of green values }
-    \item{\code{redMed}:}{Object of class \code{"matrix"} Median of red values }
-    \item{\code{validn}:}{Object of class \code{"matrix"} Number of valid probe values in samples }
-    \item{\code{annotation}:}{Object of class \code{"matrix"} Annotation of samples }
-    \item{\code{samples}:}{Object of class \code{"matrix"} Sample IDs }
+    \item{\code{arrayType}:}{character, Type of array. See  \code{\link{arrayType}} }
+    \item{\code{arrayID}:}{character, Array ID }
+    \item{\code{intensityMed}:}{numeric matrix, Median of intensity of samples }
+    \item{\code{greenMed}:}{numeric matrix, Median of green values }
+    \item{\code{redMed}:}{numeric matrix, Median of red values }
+    \item{\code{validn}:}{numeric matrix, Number of valid probe values in samples }
+    \item{\code{annotation}:}{character matrix, Annotation of samples }
+    \item{\code{samples}:}{character matrix, Sample IDs }
   }
 }
 \section{Methods}{
