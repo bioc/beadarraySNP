@@ -8,6 +8,7 @@ setMethod("initialize", "SnpSetIllumina",
                    G = new("matrix"),
                    R = new("matrix"),
                    featureData = new("AnnotatedDataFrame"),
+                   extraData = NULL,
                    ... ) {
             .Object<-callNextMethod(.Object,
                            assayData = assayDataNew(
@@ -20,6 +21,10 @@ setMethod("initialize", "SnpSetIllumina",
                            experimentData = experimentData,
                            annotation = annotation,
 													 featureData = featureData)
+            if (!is.null(extraData)) {
+              for (m in names(extraData))
+                .Object<-assayDataElementReplace(.Object, m, extraData[[m]])
+            }
             validObject(.Object)
             .Object
 
@@ -156,13 +161,13 @@ setMethod("calculateGSR", "SnpSetIllumina", function(object) {
   assayDataElementReplace(object,"GSR",sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/"))
 })
 
-read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL, 
+read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
   reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE, readTIF=FALSE, ...) {
   if (verbose) cat("Samplesheet:",ifelse(is.data.frame(samplesheet),"<data.frame>",samplesheet),"\n")
   if (is.data.frame(samplesheet)) {
     samples<-samplesheet
     for (i in 1:length(samples)) samples[[i]]<-as.character(samples[[i]])
-    path<-""
+    path<-"."
     beadstudio<-FALSE
   } else {
     path<-dirname(samplesheet)
@@ -174,7 +179,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     skip <- grep("[Data]", firstfield, fixed=TRUE)
     if (length(skip) == 0) stop("Cannot find \"[Data]\" in samplesheet file")
     if (beadstudio) manifests<-read.table(samplesheet, skip=manif, header = FALSE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character",row.names=1,nrows=skip-manif-1)
-    
+
     samples<-read.table(samplesheet, skip=skip, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character")
   }
   if (beadstudio && !is.null(reportfile)) {
@@ -182,14 +187,14 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     rownames(samples)<-samples[,"Sample_ID"]
     req_cols<-c(paste("SentrixBarcode",rownames(manifests),sep="_"),paste("SentrixPosition",rownames(manifests),sep="_"))
     smpcol<-!(req_cols %in% colnames(samples))
-    if (any(smpcol)) 
+    if (any(smpcol))
       stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
     OPAname<-as.character(manifests[,1])
-    
+
   } else {
     req_cols<-c("Sample_Name","Sentrix_Position","Sample_Plate","Pool_ID","Sentrix_ID" )
     smpcol<-!(req_cols %in% colnames(samples))
-    if (any(smpcol)) 
+    if (any(smpcol))
       stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
     if (nchar(samples[1,"Sentrix_Position"])==9) # Sentrix arrays on 96 well sample plate
       samples<-cbind(samples,validn=0,Row=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),3,4)),Col=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),8,9)))
@@ -204,8 +209,8 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
   if (is.null(rawdatapath)) rawdatapath<-path
   # SNPInfo
 	SNPinfo<-IlluminaGetOPAinfo(OPAname,manifestpath,brief=briefOPAinfo)
- 
-	if (is.null(reportfile)) { 
+
+	if (is.null(reportfile)) {
     if(is.null(SNPinfo)) stop(paste("OPA info file could not be (uniquely) identified for",OPAname))
     # Import data from GenCall software
     # GenCall, GenScore
@@ -255,7 +260,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
             sampledata<-read.table(summaryfile,header=TRUE,sep=",",row.names=1,as.is=TRUE)
             sampledata<-sampledata[as.character(SNPinfo[,"IllCode"]),]
           } else {
-            # calculate from beaddata 
+            # calculate from beaddata
             if (length(beadfile)!=1) stop(paste("Missing files to determine intensity for sample",colname))
             sampledata<-aggregate(BeadData[[colname]][,c("Grn","Red")],by=list(BeadData[[colname]]$Code),FUN=median)
             rownames(sampledata)<-sampledata[,1]
@@ -285,6 +290,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     dimnames(GenScore)<-dimnames(G)
     rownames(SNPinfo)<-SNPinfo[,"snpid"]
     SNPinfo<-cbind(SNPinfo,GTS=as.numeric(gencalls$locusinfo[rownames(SNPinfo),"GTS"]))
+    extraData<-NULL
   } else {
     chrompos.fromReport<-FALSE
     if(is.null(SNPinfo)) {
@@ -298,10 +304,18 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (length(skip) == 0) stop("Cannot find \"[Data]\" in report file")
     alldata<-read.table(reportfile, skip=skip, header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE,colClasses="character")
     # Integrity checks
-    essentialcols<-c("SNP Name","Sample ID","GC Score","Allele1 - AB","Allele2 - AB","GT Score","X Raw","Y Raw")
+    essentialcols<-c("SNP Name","Sample ID","GC Score","GT Score","X Raw","Y Raw")
     if (chrompos.fromReport) essentialcols<-c(essentialcols,c("Chr","Position"))
     foundcols<-essentialcols %in% colnames(alldata)
     if (!all(foundcols)) stop ("Columns:",paste(essentialcols[!foundcols],collapse=", ")," are missing in the report file")
+    # Test availability of Genotyping information
+    ab.report<-all(c("Allele1 - AB","Allele2 - AB") %in% colnames(alldata))
+    if (!ab.report){
+      alleliccols<-c("Allele1 - Top","Allele2 - Top")
+      if (chrompos.fromReport) alleliccols<-c(alleliccols,"ILMN Strand","SNP")
+      if (!all(alleliccols %in% colnames(alldata))) stop("Insufficient information on allelic state in the reportfile, see 'read.SnpSetIllumina' help page")
+    }
+    #TODO: Could compare this to information from reportfile header
     m<-length(unique(alldata[,"SNP Name"]))
     datasamples<-unique(alldata[,"Sample ID"])
     n<-length(datasamples)
@@ -320,22 +334,76 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     GenScore<-matrix(as.numeric(alldata[,"GC Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     GTS<-matrix(as.numeric(alldata[,"GT Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     GTS<-apply(GTS,1,max,na.rm=TRUE)
-    # Combine results from single alleles 
-    GenCall<-paste(alldata[,"Allele1 - AB"],alldata[,"Allele2 - AB"],sep="")
-    GenCall<-matrix(sub("AA","A",sub("BB","B",sub("AB","H",sub("--","-",GenCall)))),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-    # Select only data from samplesheet
+    # Combine results from single alleles
+    if (ab.report) {
+      GenCall<-paste(alldata[,"Allele1 - AB"],alldata[,"Allele2 - AB"],sep="")
+    } else {
+      # Convert SNPs with ACGT notation
+      GenCall1<-alldata[,"Allele1 - Top"]
+      GenCall2<-alldata[,"Allele2 - Top"]
+      if (chrompos.fromReport) {
+        TopBot<-alldata[,"ILMN Strand"]=="BOT"
+        Snp1<-substr(alldata[,"SNP"],2,2)
+      } else {
+        SNPinfo<-SNPinfo[rownames(G),]
+        TopBot<-rep(SNPinfo[,"IllStrand"]=="BOT",n)
+        Snp1<-rep(substr(SNPinfo[,"snpbases"],2,2),n)
+      }
+      # Generate complement for SNPs on bottom strand
+      GenCall1[TopBot]<-c("A","C","G","T","-")[match(GenCall1[TopBot],c("T","G","C","A","-"))]
+      GenCall2[TopBot]<-c("A","C","G","T","-")[match(GenCall2[TopBot],c("T","G","C","A","-"))]
+      # convert ACGT to AB
+      GenCall1<-ifelse(GenCall1==Snp1,"A","B")
+      GenCall1[GenCall2=="-"]<-"-"  # preserve no call
+      #
+      GenCall2<-ifelse(GenCall2==Snp1,"A","B")
+      GenCall2[GenCall1=="-"]<-"-"
+      #
+      GenCall<-paste(GenCall1,GenCall2,sep="")
+    }
+    GenCall<-matrix(c("A","H","B","-")[match(GenCall,c("AA","AB","BB","--"))],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+    extraData<-list()
+    extraSNPinfo<-NULL
+    extraColumns<-colnames(alldata)[!colnames(alldata) %in% c(essentialcols,"Allele1 - AB","Allele2 - AB")]
+    for (nam in extraColumns) {
+      mat<-matrix(type.convert(alldata[,nam],as.is=TRUE),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      # if all columns have same information -> this is an annotation column, put in SNPinfo
+      if (all(apply(mat,1,function(x) length(unique(x))==1))) {
+        # just use the first column
+        extraSNPinfo<-cbind(extraSNPinfo,mat[,1])
+        colnames(extraSNPinfo)[ncol(extraSNPinfo)]<-nam
+      } else {
+        extraData[[nam]]<-mat
+      }
+    }
+    if (is.null(names(extraData))) extraData<-NULL
+    if (!is.null(extraSNPinfo)) rownames(extraSNPinfo)<-newdimnames[[1]]
+
+    # Select only data from samplesheet, try a few different ways
     if (all(rownames(samples) %in% colnames(G))) {
       selected<-rownames(samples)
     } else if (all(samples[, "Sample_Name"] %in% colnames(G))){
       selected<-samples[, "Sample_Name"]
+    } else if (any(rownames(samples) %in% colnames(G))){
+      selected<-rownames(samples)[rownames(samples) %in% colnames(G)]
+    } else if (any(samples[, "Sample_Name"] %in% colnames(G))){
+      selected<-samples[samples[, "Sample_Name"] %in% colnames(G), "Sample_Name"]
     } else { # default naming of columns in beadstudio
-      selected <- paste(samples[, "Sentrix_ID"], samples[,
-          "Sentrix_Position"], sep = "_")
+      selected <- paste(samples[, "Sentrix_ID"], samples[,"Sentrix_Position"], sep = "_")
+    }
+    #
+    if (length(selected)==0) stop("None of the samples in the samplesheet match with the samples in the reportfile")
+    if (length(selected)<nrow(samples)) {
+      samples<-samples[selected,]
+      warning("Only a subset of the samples in the samplesheet could be found in the reportfile")
     }
     G<-G[,selected]
     R<-R[,selected]
     GenScore<-GenScore[,selected]
     GenCall<-GenCall[,selected]
+    if (!is.null(extraData)) {
+      extraData<-lapply(extraData, function(obj) obj[, selected])
+    }
     colnames(G)<-rownames(samples)
     colnames(R)<-rownames(samples)
     colnames(GenScore)<-rownames(samples)
@@ -343,7 +411,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (chrompos.fromReport) {
       CHR<-matrix(alldata[,"Chr"],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
       MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-      SNPinfo<-data.frame(CHR[,1,drop=FALSE],MapInfo[,1],GTS,OPAname)
+      SNPinfo<-data.frame(CHR[,1,drop=FALSE],MapInfo[,1],GTS,OPA=rep(OPAname[1],length.out=nrow))
       # assigning colnames in previous line (data.frame() ) does not work because the first column retains its column name through drop=FALSE
       # drop=FALSE is used to retain the rownames
       colnames(SNPinfo)<-c("CHR","MapInfo","GTS","OPA")
@@ -351,10 +419,11 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       SNPinfo<-SNPinfo[rownames(G),]
       SNPinfo<-cbind(SNPinfo,GTS=GTS)
     }
+    if (!is.null(extraSNPinfo)) SNPinfo<-cbind(SNPinfo,extraSNPinfo)
     samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
   }
   new("SnpSetIllumina",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, call=GenCall, callProbability=GenScore, G=G, R=R,
-             featureData=new("AnnotatedDataFrame",SNPinfo,data.frame(labelDescription=colnames(SNPinfo),row.names=colnames(SNPinfo))),storage.mode="list")
+             featureData=new("AnnotatedDataFrame",SNPinfo,data.frame(labelDescription=colnames(SNPinfo),row.names=colnames(SNPinfo))),extraData=extraData,storage.mode="list")
 }
 
 getExperiments <- function(file="experiments.txt",path=NULL)
@@ -396,7 +465,7 @@ IlluminaGetOPAinfo<-function(OPAnames,OPAinfoPath,brief=TRUE) {
       rownames(OPAinfo)<-OPAinfo[,"snpid"]
       OPA<-rep(OPAname,nrow(OPAinfo))
       #TODO check existing snp_ids in illOPA
-      if (brief) illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo[,c("snpid","IllCode","CHR","MapInfo")]))
+      if (brief) illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo[,c("snpid","IllCode","CHR","MapInfo","IllStrand","snpbases")]))
       else illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo))
     }
   }

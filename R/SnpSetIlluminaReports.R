@@ -1,6 +1,7 @@
 ## snp reports
 ## functions to report for all available data in a SnpSetIllumina object
-reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
+reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
+    plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
   # default grouping is by 4 in sequence of samples in snpdata
   plotLOH<-match.arg(plotLOH)
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
@@ -81,13 +82,14 @@ pdfSamplesSmoothCopyNumber<-function(object,filename,...) {
 	dev.off() 
 }
 
-reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, plotLOH=c("none","marker","line","NorTum"), ...){
+reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
+    plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
   ideo.width<-0.15
   ideo.ypos<-normalizedTo+(ideo.width/2)
   ideo.bleach<-0.25
   plotLOH<-match.arg(plotLOH)
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
-  sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
+  if (is.null(sample.colors)) sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
   # make sure chromosmes are sorted
   ind<-order(numericCHR(pData(featureData(snpdata))[,"CHR"]),pData(featureData(snpdata))[,"MapInfo"])
   snpdata<-snpdata[ind,]
@@ -102,7 +104,7 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
           plot(c(0,max(lengthChromosome(chrom,"bases"),pData(featureData(snpdata))[probes,"MapInfo"])),c(1,3),main=paste(group,"Chromosome",characterCHR(chrom)),type="n",ylab="intensity",xlab="",xaxt="n")
           paintCytobands(chrom,pos=c(0,ideo.ypos),units="bases",width=ideo.width,legend=FALSE,bleach=ideo.bleach)
           plotSmoothed(intensities[probes,samples,drop=FALSE],pData(featureData(snpdata))[probes,"MapInfo"],smooth.lambda=smooth.lambda,plotnew=FALSE,cols=sample.colors,...)
-          legend("topleft",samples,col=1:length(samples)+1,lty=1,lwd=2,ncol=length(samples))
+          legend("topleft",samples,col=sample.colors[1:length(samples)],lty=1,lwd=2,ncol=length(samples))
           if (plotLOH!="none") {
             probeNames<-featureNames(snpdata)[probes]
             markerbase<-par("yaxp")[1]

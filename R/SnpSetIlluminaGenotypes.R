@@ -31,12 +31,7 @@ heterozygousSNPs<-function(object,
 }
 
 calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
-  if (length(NorTum)!=ncol(object)) {
-    if (is.null(NorTum) | !(NorTum %in% colnames(pData(object)))) stop("Invalid NorTum argument")
-    else NorTum<-pData(object)[,NorTum]
-  }
-  if (!is.logical(NorTum)) NorTum<-NorTum=="N"
-  names(NorTum)<-sampleNames(object)
+  NorTum<-getNorTum(object,NorTum)
 	#
   hetSNPs<-heterozygousSNPs(object,...)
 	loh<-matrix(FALSE,nrow=nrow(object),ncol=ncol(object),dimnames=list(featureNames(object),sampleNames(object)))
@@ -53,18 +48,73 @@ calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
 	    }
 	  }
 	}
-	# compute lesser allele intensity ratio value between 0 and 1 (relative to own normal)
-	lair<-assayData(object)$G/(assayData(object)$G+assayData(object)$R)
-	lair.n<-lair
-  for (smp in unique(grouping)) {
-    idx<-which((grouping == smp) & NorTum)[1]
-    lair.n[,grouping == smp]<-lair[,idx]
-  }
-  lair<-ifelse(lair-lair.n<0,(lair/lair.n),((1-lair)/(1-lair.n)))
   #
-	res<-object
+	res<-calculateLair(object,grouping,NorTum)
 	assayData(res)$loh<-loh
 	assayData(res)$nor.gt<-nor.gt
+  res
+}
+
+calculateLair<-function(object,grouping=NULL,NorTum="NorTum",min.intensity=NULL,use.homozygous.avg=FALSE) {
+  NorTum<-getNorTum(object,NorTum)
+	# compute lesser allele intensity ratio value between 0 and 1 (relative to own normal)
+	if (is.null(grouping)) {
+    snpdata.n<-RG2polar(object) # make sure theta and intensity exist
+    theta<-assayData(snpdata.n)$theta[,NorTum]
+    theta<-1-(theta/(pi/2)) # conform to beadstudio way AA~0, BB~1
+    intensity<-assayData(snpdata.n)$intensity[,NorTum]
+    gt<-assayData(snpdata.n)$call[,NorTum]
+    aa<-ab<-bb<-theta
+    if (is.null(min.intensity)) {
+      # this filters extremes 
+      min.intensity<-quantile(apply(intensity,1,mean,na.rm=TRUE),probs=0.01)/10
+    }
+    # Compute average value of AA alleles
+    aa[gt!="A" | intensity<min.intensity]<-NA
+    aa.avg<-apply(aa,1,mean,na.rm=TRUE)
+    # fill in missing values (SNP with no AA normals)
+    aa.avgavg<-mean(aa.avg,na.rm=TRUE)
+    aa.avg[is.na(aa.avg)]<-aa.avgavg
+    #
+    bb[gt!="B" | intensity<min.intensity]<-NA
+    bb.avg<-apply(bb,1,mean,na.rm=TRUE)
+    # fill in missing values (SNP with no BB normals)
+    bb.avgavg<-mean(bb.avg,na.rm=TRUE)
+    bb.avg[is.na(bb.avg)]<-bb.avgavg
+    #
+    ab[gt!="H" | intensity<min.intensity]<-NA
+    ab.avg<-apply(ab,1,mean,na.rm=TRUE)
+    # fill in missing values (SNP with no AB normals) Use middle between values for AA and BB
+    ab.avgavg<-(aa.avg+bb.avg)/2
+    ab.avg[is.na(ab.avg)]<-ab.avgavg[is.na(ab.avg)]
+    # Now compute lair from these values: True heterozygotes should have 1, homozygotes + LOH will have ~0
+    lair.t<-assayData(snpdata.n)$G/(assayData(snpdata.n)$G + assayData(snpdata.n)$R)
+    if (use.homozygous.avg) {
+      # make sure that ab.avg is between aa.avg and bb.avg by zero-ing the homozygous 
+      aa.avg[aa.avg-ab.avg > -0.05]<-0
+      bb.avg[bb.avg-ab.avg <  0.05]<-1
+      # Use average of A and B to define endpoints
+      lair<-(lair.t-aa.avg)/(ab.avg-aa.avg)
+      lair2<-(bb.avg-lair.t)/(bb.avg-ab.avg)
+    } else {
+      # Use 0 and 1 as endpoints
+      lair<-lair.t/ab.avg
+      lair2<-(1-lair.t)/(1-ab.avg)
+    }
+    lair<-ifelse(lair.t-ab.avg<0,lair,lair2)
+    # make sure value is between 0 and 1
+    lair[lair<0]<-0
+    lair[lair>1]<-1
+	} else {
+  	lair<-assayData(object)$G/(assayData(object)$G+assayData(object)$R)
+  	lair.n<-lair
+    for (smp in unique(grouping)) {
+      idx<-which((grouping == smp) & NorTum)[1]
+      lair.n[,grouping == smp]<-lair[,idx]
+    }
+    lair<-ifelse(lair-lair.n<0,(lair/lair.n),((1-lair)/(1-lair.n)))
+  }
+	res<-object
 	assayData(res)$lair<-lair
   res
 }

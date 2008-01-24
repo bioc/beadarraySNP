@@ -1,5 +1,7 @@
 # Normalization procedures for SnpSetIllumina class
-# Initial version 12-may-2006
+# Author: Jan Oosting
+# 12-may-2006 Initial version 
+# 18-jan-2008 definition of getNorTum()
 getSubsample<-function(object,subsample) {
   if (length(subsample)!=nrow(object)) {
     if (is.null(subsample) || subsample=="") subsample<-rep(1,nrow(object))
@@ -8,17 +10,37 @@ getSubsample<-function(object,subsample) {
   as.factor(subsample)
 }
 
+getNorTum<-function(object,NorTum,required=FALSE) {
+  if (length(NorTum)!=ncol(object)) {
+    if (is.null(NorTum) | !(NorTum %in% colnames(pData(object)))) {
+      if (required) stop("Invalid NorTum argument")
+      else NorTum<-rep(TRUE,ncol(object))
+    }
+    else NorTum<-pData(object)[,NorTum]
+  }
+  if (!is.logical(NorTum)) NorTum<-NorTum=="N"
+  if (!any(NorTum)) NorTum<-!NorTum # Select all samples
+  names(NorTum)<-sampleNames(object)
+  NorTum
+}
+
+getAssayData<-function(object, mat.data) {
+  if (!identical(dim(assayData(object)$call),dim(mat.data))) {
+    if (length(mat.data)==1) {
+      mat.data<-assayDataElement(object,mat.data)
+      if (is.null(mat.data)) stop(paste("Element",mat.data,"not found in assayData"))
+    } else stop("The argument should either be a matrix with assayData dimensions or the name of an element in assayData")
+  }
+  mat.data
+}
+
 standardNormalization<-function(snpdata) {
   normalizeLoci.SNP(normalizeWithinArrays.SNP(normalizeBetweenAlleles.SNP(snpdata),
        callscore=0.8,relative=TRUE,fixed=FALSE,quantilepersample=TRUE),normalizeTo=2)
 }
 
-backgroundEstimate<-function(object,
-  method=c("minimum","mode","intmin","anglemode"),
-  maxmode=3000,
-  bincount=40,
-  maxangle=0.3,
-  subsample="OPA") {
+backgroundEstimate<-function(object, method=c("minimum","mode","intmin","anglemode"), maxmode=3000, 
+  bincount=40, maxangle=0.3, subsample="OPA") {
   ## object   : class SnpSetIllumina; Green and Red not NULL
   ## subsample: character with column name in featureData
   ##            "" or NULL
@@ -94,10 +116,8 @@ backgroundEstimate<-function(object,
   res
 }
 
-backgroundCorrect.SNP<- function(
-  object,
-  method=c("none", "subtract", "half", "minimum", "edwards", "normexp", "rma"),
-  offset = 0){
+backgroundCorrect.SNP<- function( object,
+  method=c("none", "subtract", "half", "minimum", "edwards", "normexp", "rma"), offset = 0){
   # Background correction adapted from limma
   method<-match.arg(method)
 
@@ -175,10 +195,7 @@ backgroundCorrect.SNP<- function(
   res
 }
   
-normalizeBetweenAlleles.SNP<-function(
-  object,
-  method=c("quantile"),
-  subsample="OPA"){
+normalizeBetweenAlleles.SNP<-function(object, method=c("quantile"), subsample="OPA"){
 
   method<-match.arg(method)
 
@@ -205,15 +222,8 @@ normalizeBetweenAlleles.SNP<-function(
   res
 }
 
-normalizeWithinArrays.SNP<-function(
-  object,
-  callscore=0.5,
-  normprob=0.5,
-  quantilepersample=FALSE,
-  relative=FALSE,
-  fixed=FALSE,
-  useAll=FALSE,
-  subsample="OPA") {
+normalizeWithinArrays.SNP<-function(object, callscore=0.5, normprob=0.5, quantilepersample=FALSE,
+  relative=FALSE, fixed=FALSE, useAll=FALSE, subsample="OPA", Q.scores="callProbability") {
 
   if (useAll) heterozyg<-assayDataElement(object,"call") != ""
   else heterozyg<-assayDataElement(object,"call") == "AB" | assayDataElement(object,"call") == "H"
@@ -225,14 +235,16 @@ normalizeWithinArrays.SNP<-function(
   }
   subsample<-getSubsample(object,subsample)
 
-  GenScore<-assayDataElement(object,"callProbability")
+  GenScore<-getAssayData(object,Q.scores)
+  
   if (relative) {
     if ("GTS" %in% varLabels(featureData(object))) GenScore<-sweep(GenScore,1,pData(featureData(object))[,"GTS"],"/")
     else stop("featureData does not contain a 'GTS' column, relative=TRUE can not be used")
   }
   if (fixed) gc.min<-callscore
   else if (!quantilepersample) gc.min<-quantile(GenScore[heterozyg],probs=callscore,na.rm=TRUE)
-
+  # else gc.min will be calculated separately for each sample
+  
   R<-assayDataElement(object,"R")
   G<-assayDataElement(object,"G")
 
@@ -269,14 +281,7 @@ normalizeLoci.SNP <- function(
   method<-match.arg(method)
 
   # Select the normal samples for reference
-  if (length(NorTum)!=ncol(object)) {
-    if (is.null(NorTum) | !(NorTum %in% colnames(pData(object)))) NorTum<-rep(TRUE,ncol(object))
-    else NorTum<-pData(object)[,NorTum]
-  }
-  if (!is.logical(NorTum)) NorTum<-NorTum=="N"
-  # Use all samples as references when there are no normal samples
-  if (!any(NorTum)) NorTum<-!NorTum
-
+  NorTum<-getNorTum(object,NorTum)
   # treat sex chromosomes dependent on, assume F(emale) by default
   if (length(Gender)!=ncol(object)) {
     if (is.null(Gender) | !(Gender %in% colnames(pData(object)))) Gender<-rep(TRUE,ncol(object))
