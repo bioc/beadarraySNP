@@ -6,10 +6,14 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
   plotLOH<-match.arg(plotLOH)
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
   # make sure chromosmes are sorted
-  ind<-order(pData(featureData(snpdata))[,"CHR"],pData(featureData(snpdata))[,"MapInfo"])
+  CHR<-numericCHR(pData(featureData(snpdata))[,"CHR"])
+  ind<-order(CHR,pData(featureData(snpdata))[,"MapInfo"])
   snpdata<-snpdata[ind,]
+  CHR<-CHR[ind]
+  chroms<-unique(CHR)
+
   if (is.null(sample.colors)) sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
-  chroms<-unique(pData(featureData(snpdata))[,"CHR"])
+  
   intensities<-assayData(snpdata)[["intensity"]]
   for (pageID in levels(factor(grouping))){
     samples<-sampleNames(snpdata)[grouping == pageID]
@@ -22,7 +26,7 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
         if(tum.now <- (pData(snpdata)[samples[i1],"NorTum"]!="N")) tum.i<-tum.i+1
         
         for (chrom in chroms) {
-          probes<-pData(featureData(snpdata))[,"CHR"] == chrom
+          probes<- CHR == chrom
           if (sum(!is.na(intensities[probes,samples[i1]]))>10 ) {
             smoothed<-quantsmooth(intensities[probes,samples[i1]],smooth.lambda=smooth.lambda,ridge.kappa=ridge.kappa,segment=151)
             lines(dchrompos[probes,2],dchrompos[probes,1]+(smoothed-normalizedTo)/normalizedTo,col=sample.colors[i1],lwd=1.5)
@@ -91,15 +95,18 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
   if (is.null(sample.colors)) sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
   # make sure chromosmes are sorted
-  ind<-order(numericCHR(pData(featureData(snpdata))[,"CHR"]),pData(featureData(snpdata))[,"MapInfo"])
+  CHR<-numericCHR(pData(featureData(snpdata))[,"CHR"])
+  ind<-order(CHR,pData(featureData(snpdata))[,"MapInfo"])
   snpdata<-snpdata[ind,]
-  chroms<-unique(numericCHR(pData(featureData(snpdata))[,"CHR"]))
+  CHR<-CHR[ind]
+  chroms<-unique(CHR)
+
   intensities<-assayData(snpdata)[["intensity"]]
   for (group in levels(factor(grouping))){
     samples<-sampleNames(snpdata)[grouping == group]
     if (length(samples)>0) {
       for (chrom in chroms) {
-        probes<-numericCHR(pData(featureData(snpdata))[,"CHR"]) == chrom
+        probes<- CHR == chrom
         if (any(apply(intensities[probes,samples,drop=FALSE],2,function(x) sum(!is.na(x))>10))) {
           plot(c(0,max(lengthChromosome(chrom,"bases"),pData(featureData(snpdata))[probes,"MapInfo"])),c(1,3),main=paste(group,"Chromosome",characterCHR(chrom)),type="n",ylab="intensity",xlab="",xaxt="n")
           paintCytobands(chrom,pos=c(0,ideo.ypos),units="bases",width=ideo.width,legend=FALSE,bleach=ideo.bleach)
