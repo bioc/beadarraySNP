@@ -7,11 +7,11 @@ exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featur
              "annotation<-", "description<-", "experimentData<-", "exprs<-", 
              "featureNames<-", "geneNames<-", "pData<-",
              "phenoData<-", "sampleNames<-", "assayData<-", "featureData<-",
-             reporterInfo,"reporterInfo<-",
+             fData,"fData<-",
              dim, assayData, reporterNames, initialize,
-						 "arrayType<-", "arrayID<-", arrayType, arrayID,
-						 plotQC, reportSamplePanelQC,
-						 calculateGSR )
+             "arrayType<-", "arrayID<-", arrayType, arrayID,
+             plotQC, reportSamplePanelQC,
+             calculateGSR)
 
 export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        normalizeBetweenAlleles.SNP, normalizeWithinArrays.SNP,
@@ -27,4 +27,4 @@ export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        plotGoldenGate4OPA, createCNSummary, alterCN,
        getDNAindex, interactiveCNselect, setRealCN,
        Sample_Map2Samplesheet, pdfBeadstudioQC, BeadstudioQC,
-       calculateLair )
+       calculateLair)

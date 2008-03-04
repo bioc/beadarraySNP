@@ -40,9 +40,9 @@ setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value)
   assayDataElementReplace(object, "call", value)
 })
 
-setMethod("reporterInfo", c("SnpSetIllumina"), function(object) pData(featureData(object)))
+setMethod("fData", c("SnpSetIllumina"), function(object) pData(featureData(object)))
 
-setReplaceMethod("reporterInfo", c("SnpSetIllumina", "data.frame"), function(object, value) {
+setReplaceMethod("fData", c("SnpSetIllumina", "data.frame"), function(object, value) {
   pData(featureData(object))<- value
 })
 

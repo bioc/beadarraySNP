@@ -30,7 +30,7 @@ interactiveCNselect<-function(object,sample=1,dnaIndex) {
         # rect(0,0,0.9,2,col="white")
         cn.res<-alterCN(cn.res,opa,assayData(object)$predicted[snpid,sample],increase)
         cn.res<-plotGoldenGate4OPA(object,cn.res,sample=sample,plotRaw=plotRaw,interact=TRUE)
-        text(0,1.6,paste("Chr",reporterInfo(object)[snpid,"CHR"],"position",reporterInfo(object)[snpid,"MapInfo"]),adj=0)
+        text(0,1.6,paste("Chr",fData(object)[snpid,"CHR"],"position",fData(object)[snpid,"MapInfo"]),adj=0)
         text(0,1.2,paste("CN",assayData(object)$predicted[snpid,sample]),adj=0)
         text(0,0.8,paste("increase",increase),adj=0)
       }

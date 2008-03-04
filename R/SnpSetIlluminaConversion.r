@@ -4,7 +4,7 @@
 # aCGH: Class aCGH
 convert2aCGH<- function(object,normalizedTo=2,doLog=TRUE,organism="hsa") {
   # Intensities to log2.ratios
-  # reporterInfo to clones.info
+  # fData to clones.info
   # pData to phenotype
   if (require(aCGH)) {
     if ( !("intensity" %in% assayDataElementNames(object))) object<-RG2polar(object)
@@ -12,7 +12,7 @@ convert2aCGH<- function(object,normalizedTo=2,doLog=TRUE,organism="hsa") {
       log2.ratios<-log2(assayData(object)[["intensity"]]/normalizedTo)
     else
       log2.ratios<-assayData(object)[["intensity"]]/normalizedTo
-    clones.info<-reporterInfo(object)[,c("snpid","IllCode","CHR","MapInfo")]
+    clones.info<-fData(object)[,c("snpid","IllCode","CHR","MapInfo")]
     names(clones.info)<-c("Clone","Target","Chrom","kb")
     # convert Chrom
     clones.info$Chrom<-numericCHR(clones.info$Chrom)
@@ -27,7 +27,7 @@ convert2aCGH<- function(object,normalizedTo=2,doLog=TRUE,organism="hsa") {
 
 convert2SegList <- function(object,normalizedTo=2,doLog=TRUE,organism="hsa") {
   # Intensities to log2.ratios
-  # reporterInfo to clones.info
+  # fData to clones.info
   # pData to phenotype
   if (require(snapCGH)){
     if ( !("intensity" %in% assayDataElementNames(object))) object<-RG2polar(object)
@@ -35,7 +35,7 @@ convert2SegList <- function(object,normalizedTo=2,doLog=TRUE,organism="hsa") {
       log2.ratios<-log2(assayData(object)[["intensity"]]/normalizedTo)
     else
       log2.ratios<-assayData(object)[["intensity"]]/normalizedTo
-    clones.info<-reporterInfo(object)[,c("snpid","IllCode","CHR","MapInfo")]
+    clones.info<-fData(object)[,c("snpid","IllCode","CHR","MapInfo")]
     names(clones.info)<-c("ID","Target","Chr","Position")
     # convert Chrom
     clones.info$Chr<-numericCHR(clones.info$Chr)
@@ -48,4 +48,3 @@ convert2SegList <- function(object,normalizedTo=2,doLog=TRUE,organism="hsa") {
     new("SegList",segList)
   } else stop("Package 'snapCGH' is needed for conversion to a SegList object")
 }
-

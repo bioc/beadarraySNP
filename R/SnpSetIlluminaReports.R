@@ -174,7 +174,7 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",lohwidth=1,segment=101,
   orientation=c("V","H"),...) {
   orientation<-match.arg(orientation)
-  ind<-order(numericCHR(reporterInfo(snpdata)$CHR),reporterInfo(snpdata)$MapInfo)
+  ind<-order(numericCHR(fData(snpdata)$CHR),fData(snpdata)$MapInfo)
   snpdata<-snpdata[ind,]
   if (!is.null(grouping)) {
     ind<-order(grouping)
@@ -225,7 +225,7 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
   if (plotSampleNames) {
     axis(samplenameAxis,(1:ncol(snpdata))-0.5,sampleNames(snpdata),las=2,cex.axis=0.6)
   }
-  yax<-getMidMaxIdx(reporterInfo(snpdata)$CHR)
+  yax<-getMidMaxIdx(fData(snpdata)$CHR)
   axis(2,yax$midpos,row.names(yax))
   abline(h=yax$maxpos)
 
@@ -234,7 +234,7 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
 reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distance.min,
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",proportion=0.2,plotLOH=TRUE,
   segment=101,...) {
-  ind<-order(numericCHR(reporterInfo(snpdata)$CHR),reporterInfo(snpdata)$MapInfo)
+  ind<-order(numericCHR(fData(snpdata)$CHR),fData(snpdata)$MapInfo)
   if (missing(distance.min)) distance.min=1e+9
   snpdata<-snpdata[ind,]
   xmin<- -ncol(snpdata)*proportion
@@ -242,8 +242,8 @@ reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,dis
   cb.w<- -xmin*0.2
   if (plotLOH) cn.w<-0.5 else cn.w<-1
   for (chrom in 1:22) {
-    probes<-reporterInfo(snpdata)$CHR == chrom
-    lengthchrom<-max(reporterInfo(snpdata)$MapInfo[probes],na.rm=TRUE)
+    probes<-fData(snpdata)$CHR == chrom
+    lengthchrom<-max(fData(snpdata)$MapInfo[probes],na.rm=TRUE)
     plot(0,xlim=c(xmin,ncol(snpdata)),ylim=c(0,lengthchrom),xlab="",ylab="",xaxt="n",yaxt="n",main=paste("chromosome",chrom),type="n")
     myusr<-par()$usr
     myusr[1]<-xmin
@@ -251,7 +251,7 @@ reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,dis
     par(usr=myusr)
     paintCytobands(chrom,c(cb.x,lengthchrom),units="bases",width=cb.w,orientation="v",legend=TRUE)
     for (smp in 1:ncol(snpdata)) {
-      updown<-getChangedRegions(assayData(snpdata)$intensity[probes,smp],reporterInfo(snpdata)$MapInfo[probes],
+      updown<-getChangedRegions(assayData(snpdata)$intensity[probes,smp],fData(snpdata)$MapInfo[probes],
                                 segment=segment,...)
       if (!is.null(updown)) {
         rect(smp-1,lengthchrom-updown[,"start"],smp-1+cn.w,lengthchrom-updown[,"end"],col=ifelse(updown[,"up"],upcolor,downcolor),border=NA)
@@ -261,7 +261,7 @@ reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,dis
         gt<-assayData(snpdata)$call[probes,smp]
         het<-names(gt)[gt=="H"]
         if (length(het)>0){
-          rect(smp-0.25,lengthchrom-reporterInfo(snpdata)[het,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(snpdata)[het,"MapInfo"]+probe.w,col=hetcolor,border=NA)
+          rect(smp-0.25,lengthchrom-fData(snpdata)[het,"MapInfo"]-probe.w,smp,lengthchrom-fData(snpdata)[het,"MapInfo"]+probe.w,col=hetcolor,border=NA)
         }
         loh<-featureNames(snpdata)[assayData(snpdata)$loh[,smp] & probes]
         if (length(loh)>0) {
@@ -269,7 +269,7 @@ reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,dis
           distance<-abs(c(position,0)-c(0,position))
           min.distance<-apply(cbind(distance[-1],distance[-length(distance)]),1,min)
           loh<-loh[min.distance<distance.min]
-          if (length(loh)>0) rect(smp-0.5,lengthchrom-reporterInfo(snpdata)[loh,"MapInfo"]-probe.w,smp,lengthchrom-reporterInfo(snpdata)[loh,"MapInfo"]+probe.w,col=lohcolor,border=NA)
+          if (length(loh)>0) rect(smp-0.5,lengthchrom-fData(snpdata)[loh,"MapInfo"]-probe.w,smp,lengthchrom-fData(snpdata)[loh,"MapInfo"]+probe.w,col=lohcolor,border=NA)
         }
       }
     }
@@ -409,4 +409,3 @@ reportGroupZygosity<-function (snpdata,snps,Grouping,NorTum,NormalizedTo=1){
   for (snp in snps) plotGroupZygosity(snpdata$Green[snp,],snpdata$Red[snp,],snpdata$GenCall[snp,],Grouping,NorTum,NormalizedTo,main=snp)  
   dev.off()
 }
-
