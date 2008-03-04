@@ -87,10 +87,9 @@ pdfSamplesSmoothCopyNumber<-function(object,filename,...) {
 }
 
 reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
-    plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
+    plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ideo.bleach=0.25, ...){
   ideo.width<-0.15
   ideo.ypos<-normalizedTo+(ideo.width/2)
-  ideo.bleach<-0.25
   plotLOH<-match.arg(plotLOH)
   if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
   if (is.null(sample.colors)) sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
@@ -105,6 +104,7 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
   for (group in levels(factor(grouping))){
     samples<-sampleNames(snpdata)[grouping == group]
     if (length(samples)>0) {
+      par(mfrow=par()$mfrow) # Start on a new page
       for (chrom in chroms) {
         probes<- CHR == chrom
         if (any(apply(intensities[probes,samples,drop=FALSE],2,function(x) sum(!is.na(x))>10))) {
@@ -115,12 +115,35 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
           if (plotLOH!="none") {
             probeNames<-featureNames(snpdata)[probes]
             markerbase<-par("yaxp")[1]
-            markerinterval<-(normalizedTo-markerbase)/20
+            markerinterval<-(normalizedTo-markerbase)/13
             if (plotLOH=="marker") {
-              for (samp in 1:length(samples)) {
-                chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[samp]])
-                LOH<-probeNames[chromhet>20]
-                if (length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],markerbase+(samp*markerinterval),pch="-",col=sample.colors[samp])
+              if ("nor.gt" %in% assayDataElementNames(snpdata)) {
+                tum.i<- 0
+                marker.width<-(par("usr")[2]-par("usr")[1])/1000
+                for (samp in 1:length(samples)) {
+                  if (pData(snpdata)[samples[samp],"NorTum"]!="N") {
+                    tum.i<-tum.i+1
+                    het.nrm<-assayData(snpdata)$nor.gt[probes,samples[samp]]=="TRUE"
+                    het.nrm<-names(het.nrm)[het.nrm]
+                    het.nrm<-het.nrm[!is.na(het.nrm)]
+                    if (length(het.nrm)>0) {
+                      idx<-match(het.nrm,featureNames(snpdata))
+                      # LOH + quality
+                      abline(h=markerbase+tum.i*markerinterval,lwd=1.5,col=sample.colors[samp])
+                      q.col<-ifelse(assayData(snpdata)$GSR[idx,samples[samp]]<0.8,"mediumblue","green")
+                      q.col<-ifelse(assayData(snpdata)$call[idx,samples[samp]]=="H",q.col,"red")
+                      xpos<-pData(featureData(snpdata))[idx,"MapInfo"]
+                      rect(xpos-marker.width,markerbase+(samp-0.4)*markerinterval,xpos+marker.width,markerbase+(samp+0.4)*markerinterval,border=NA,col=q.col)
+                    }
+                    
+                  }
+                }
+              } else {
+                for (samp in 1:length(samples)) {
+                  chromhet<-heterozygosity(assayData(snpdata)[["call"]][probes,samples[samp]])
+                  LOH<-probeNames[chromhet>20]
+                  if (length(LOH)>0) points(pData(featureData(snpdata))[LOH,"MapInfo"],markerbase+(samp*markerinterval),pch="-",col=sample.colors[samp])
+                }
               }
             }
             if (plotLOH=="line") {
