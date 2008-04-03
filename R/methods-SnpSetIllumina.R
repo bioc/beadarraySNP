@@ -161,28 +161,39 @@ setMethod("calculateGSR", "SnpSetIllumina", function(object) {
   assayDataElementReplace(object,"GSR",sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/"))
 })
 
+read.SnpSetSampleSheet<-function(samplesheet) {
+  manifests<-NULL
+  return(samples)
+}
+
+read.SnpSetGencall<-function(samples,manifestpath,reportpath,rawdatapath, briefOPAinfo) {
+}
+
+read.SnpSetBeadstudio<-function(samples,reportfile) {
+
+}
+
+
+
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
-  reportfile=NULL, briefOPAinfo=TRUE, verbose=FALSE, readTIF=FALSE, ...) {
-  if (verbose) cat("Samplesheet:",ifelse(is.data.frame(samplesheet),"<data.frame>",samplesheet),"\n")
+  reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, ...) {
+  path<-ifelse(is.data.frame(samplesheet),".",dirname(samplesheet))
+  manifests<-NULL
   if (is.data.frame(samplesheet)) {
     samples<-samplesheet
     for (i in 1:length(samples)) samples[[i]]<-as.character(samples[[i]])
-    path<-"."
     beadstudio<-FALSE
   } else {
-    path<-dirname(samplesheet)
     firstfield <- scan(samplesheet, what = "", sep = ",", flush = TRUE,
             quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
     # test if beadstudio sample sheet
     manif <- grep("[Manifests]", firstfield, fixed=TRUE)
-    beadstudio<-length(manif)>0
     skip <- grep("[Data]", firstfield, fixed=TRUE)
     if (length(skip) == 0) stop("Cannot find \"[Data]\" in samplesheet file")
-    if (beadstudio) manifests<-read.table(samplesheet, skip=manif, header = FALSE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character",row.names=1,nrows=skip-manif-1)
-
+    if (length(manif)>0) manifests<-read.table(samplesheet, skip=manif, header = FALSE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character",row.names=1,nrows=skip-manif-1)[,1,drop=FALSE]
     samples<-read.table(samplesheet, skip=skip, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character")
   }
-  if (beadstudio && !is.null(reportfile)) {
+  if (!is.null(manifests) && !is.null(reportfile)) {
     # this only works for beadstudio final report files
     rownames(samples)<-samples[,"Sample_ID"]
     req_cols<-c(paste("SentrixBarcode",rownames(manifests),sep="_"),paste("SentrixPosition",rownames(manifests),sep="_"))
@@ -190,7 +201,6 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (any(smpcol))
       stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
     OPAname<-as.character(manifests[,1])
-
   } else {
     req_cols<-c("Sample_Name","Sentrix_Position","Sample_Plate","Pool_ID","Sentrix_ID" )
     smpcol<-!(req_cols %in% colnames(samples))
@@ -202,7 +212,6 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     OPAname<-as.character(samples[1,"Pool_ID"])
     rownames(samples)<-samples[,"Sample_Name"]
   }
-  if (verbose) cat(nrow(samples),"samples in sheet\n")
   #
   if (is.null(manifestpath)) manifestpath<-path
   if (is.null(reportpath)) reportpath<-path
@@ -221,7 +230,6 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     SNPinfo<-SNPinfo[ind,]
     impGenCall<-gencalls$genotypes[ind,]
     impGenScore<-gencalls$callscores[ind,]
-    if (verbose) cat(ncol(impGenCall),"samples in report\n")
   	#if (!is.null(gencalls)) locusinfo<-gencalls$"locusinfo"
   	G<-NULL
   	R<-NULL
@@ -246,7 +254,6 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       # read data, sort by rsnumber, new data only has illumnicode
       # drop data that has no rs-codes
       colname<-paste(samples[sample,"Sentrix_ID"],samples[sample,"Sentrix_Position"],sep="_")
-      if (verbose) cat(colname)
       if (colname %in% colnames(impGenCall)) {
         GenCall<-cbind(GenCall,impGenCall[,colname])
         GenScore<-cbind(GenScore,impGenScore[,colname])
@@ -279,7 +286,6 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
         warning(paste("Sample",rownames(samples)[sample],"is defined in samplesheet, but is not in the reportfile"))
       }
     }
-    if (verbose) cat("\n")
     # set all names
     colnames(G)<-rownames(samples)
     rownames(G)<-SNPinfo[,"snpid"]
