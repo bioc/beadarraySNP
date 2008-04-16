@@ -15,8 +15,6 @@ segmentate(object, method = c("DNACopy", "HMM", "BioHMM", "GLAD"), normalizedTo 
   \item{doMerge}{logical, perform merging of close states}
   \item{subsample}{factor}
 }
-\details{
-}
 \value{
   SnpSetIllumina object with elements \code{observed, states and predicted} set in the \code{AssayData} slot
 }

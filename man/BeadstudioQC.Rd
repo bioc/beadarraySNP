@@ -18,9 +18,6 @@ pdfBeadstudioQC(QClist, basename = "beadstudio", by = 10)
   \item{basename}{character, prefix for PDF files. This name will be added before the Barcode of the chip}
   \item{by}{integer, number of samples in barplot, see \code{\link{reportSamplePanelQC}}}
 }
-\details{
-  
-}
 \value{
   The \code{BeadstudioQC} function generates a list of \code{\link{QCIllumina}} objects
   The \code{pdfBeadstudioQC} function generates a pdf-file for each \code{QCIllumina} object in the list

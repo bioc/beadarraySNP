@@ -11,7 +11,7 @@
 \usage{
 reportChromosomesSmoothCopyNumber(snpdata, grouping, normalizedTo=2, 
   smooth.lambda=2, ridge.kappa=0, plotLOH=c("none", "marker", "line", "NorTum"), 
-  sample.colors=NULL, \dots)
+  sample.colors = NULL, ideo.bleach=0.25, \dots)
 reportSamplesSmoothCopyNumber(snpdata, grouping, normalizedTo=2, 
   smooth.lambda=2, ridge.kappa=0, plotLOH=c("none", "marker", "line", "NorTum"), 
   sample.colors=NULL, \dots)
@@ -24,7 +24,6 @@ reportChromosomeGainLossLOH(snpdata, grouping, plotSampleNames=FALSE, distance.m
 reportGenomeIntensityPlot(snpdata, normalizedTo=NULL, subsample=NULL, smoothing=c("mean", "quant"),
   dot.col="black", smooth.col="red", \dots)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{snpdata}{SnpSetIllumina object.}
   \item{grouping}{factor, elements with same value are plotted together. Defaults
@@ -49,6 +48,7 @@ reportGenomeIntensityPlot(snpdata, normalizedTo=NULL, subsample=NULL, smoothing=
   \item{smoothing}{Type of smoothing per chromosome.}
   \item{dot.col}{color.}
   \item{smooth.col}{color.}
+  \item{ideo.bleach}{numeric [0,1]}
   \item{\dots}{arguments are forwarded to \code{plot} or \code{getChangedRegions}.}
 }
 \details{
@@ -59,6 +59,7 @@ reportGenomeIntensityPlot(snpdata, normalizedTo=NULL, subsample=NULL, smoothing=
   create picture files like \code{jpg, png, bmp}.
 }
 \value{
+  These functions are executed for their side effects
 }
 \author{Jan Oosting}
 \seealso{

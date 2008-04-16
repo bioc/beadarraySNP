@@ -17,6 +17,7 @@ plotGoldenGate4OPA(object, cn.sum = NULL, sample = 1, plotRaw = FALSE, main = NU
   \item{\dots}{extra arguments are formwarded to \code{plot}}
 }
 \details{
+  prepare interactive selection
 }
 \value{
   list, see \code{\link{createCNSummary}}

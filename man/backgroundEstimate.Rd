@@ -48,7 +48,4 @@
 \seealso{
    \code{\link{SnpSetIllumina-class}}, \code{\link{backgroundCorrect.SNP}}
 }
-\examples{
-
-}
 \keyword{manip}

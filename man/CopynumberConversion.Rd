@@ -38,7 +38,4 @@
 \seealso{
    \code{\link{SnpSetIllumina-class}}, \code{\link[aCGH:aCGH]{aCGH-class}}, \code{\link[snapCGH:SegList]{SegList-class}}
 }
-\examples{
-
-}
 \keyword{manip}

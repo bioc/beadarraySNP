@@ -10,8 +10,6 @@ getDNAindex(cn.sum)
 \arguments{
   \item{cn.sum}{list with elements \code{dnaIndex, CN.total.nrm, states}, see \code{\link{createCNSummary}}}
 }
-\details{
-}
 \value{
   scalar. DNA index of an unaffected sample is 1
 }

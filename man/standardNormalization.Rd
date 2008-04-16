@@ -23,7 +23,6 @@ standardNormalization(snpdata)
   assayData normalized to obtain values close to 2 on a linear scale for 
   unaffected material.
 }
-\references{}
 \author{Jan Oosting}
 \seealso{\code{\link{normalizeBetweenAlleles.SNP}},\code{\link{normalizeWithinArrays.SNP}},
   \code{\link{normalizeLoci.SNP}}}

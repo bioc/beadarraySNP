@@ -10,9 +10,8 @@
 }
 
 \usage{
-   read.SnpSetIllumina(samplesheet, manifestpath = NULL, reportpath = NULL,
-     rawdatapath = NULL, reportfile = NULL, briefOPAinfo=TRUE, verbose=FALSE,
-     readTIF=FALSE, ...)
+   read.SnpSetIllumina(samplesheet, manifestpath=NULL, reportpath=NULL,
+     rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, ...)
 }
 \arguments{
    \item{samplesheet}{a data.frame or filename, contains the sample sheet}
@@ -27,8 +26,6 @@
      code, chromosome and basepair position are put into the \code{featureData} 
      slot of the result, else all information from the OPA file is put into the 
      \code{featureData} slot}
-   \item{verbose}{logical, if \code{TRUE} then some extra information is given 
-     during the import}
    \item{readTIF}{logical, uses \code{beadarray} package and raw TIF files to 
      read data}
    \item{\dots}{arguments are forwarded to \code{\link[beadarray:readIllumina]{readIllumina}} 

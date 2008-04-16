@@ -1,6 +1,5 @@
 \name{alterCN}
 \alias{alterCN}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{ alterCN }
 \description{
   Changes one of the levels of a cn.sum data structure
@@ -8,7 +7,6 @@
 \usage{
 alterCN(cn.sum, opa, value, updown)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{cn.sum}{cn.sum structure to change}
   \item{opa}{opa panel within the structure}
@@ -27,10 +25,5 @@ alterCN(cn.sum, opa, value, updown)
   a new cn.sum data structure
 }
 \author{Jan Oosting}
-\note{ 
-}
 \seealso{ \link{interactiveCNselect}, \link{createCNSummary}, \link{setRealCN} }
-
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{manip}
