@@ -133,7 +133,7 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
                       q.col<-ifelse(assayData(snpdata)$GSR[idx,samples[samp]]<0.8,"mediumblue","green")
                       q.col<-ifelse(assayData(snpdata)$call[idx,samples[samp]]=="H",q.col,"red")
                       xpos<-pData(featureData(snpdata))[idx,"MapInfo"]
-                      rect(xpos-marker.width,markerbase+(samp-0.4)*markerinterval,xpos+marker.width,markerbase+(samp+0.4)*markerinterval,border=NA,col=q.col)
+                      rect(xpos-marker.width,markerbase+(tum.i-0.4)*markerinterval,xpos+marker.width,markerbase+(tum.i+0.4)*markerinterval,border=NA,col=q.col)
                     }
                     
                   }

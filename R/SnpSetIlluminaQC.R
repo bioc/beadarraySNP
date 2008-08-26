@@ -45,37 +45,59 @@ removeLowQualitySamples<-function(object, min.intensity=1500, min.gt=100, subsam
   object
 }
 
+
 calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
   # object should be SnpSetIllumina
   if (class(object)!="SnpSetIllumina") stop("object not usable for this function")
-  # object should not be combined 
-  if (length(annotation(object))>1) stop("function does not work with combined datasets")
-  if (is.null(QCobject)) {
-     QCobject<-new("QCIllumina")
-     arrayID(QCobject)<-as.character(pData(object)$Sentrix_ID[1])
-     arrayType(QCobject)<-arrayType
+  # test for beadstudio combined samplesheet
+  barcodesCol<-grep("^SentrixBarcode_",colnames(pData(object)))
+  if (length(barcodesCol) > 0) {
+    # make a (list of) qcobject for all opapanels in samplesheet
+    qcobjects<-list()
+    opapanels<-sub("^SentrixBarcode_","",colnames(pData(object))[barcodesCol])
+    opaAnnot<-annotation(object)[match(opapanels,LETTERS)]
+    for (opa in 1:length(barcodesCol)) {
+      probes<-pData(featureData(object))$OPA==opaAnnot[opa]
+      for (barcode in unique(pData(object)[,barcodesCol[opa]])) {
+        samples<-pData(object)[,barcodesCol[opa]]==barcode
+        objectsub<-object[probes,samples]
+        smpPosition<-pData(objectsub)[,paste("SentrixPosition_",opapanels[opa],sep="")]
+        pData(objectsub)<-cbind(pData(objectsub)[,c("Sample_Name","Sample_ID")],Sentrix_ID=pData(objectsub)[,barcodesCol[opa]],Col=as.numeric(substr(smpPosition,7,9)),Row=as.numeric(substr(smpPosition,2,4)))
+        annotation(objectsub)<-opaAnnot[opa]
+        qcobjects[[barcode]]<-calculateQCarray(objectsub,qcobjects[[barcode]],arrayType)
+      }
+    }
+    qcobjects
+  } else {
+    # object should not be combined 
+    if (length(annotation(object))>1) stop("function does not work with combined datasets")
+    if (is.null(QCobject)) {
+       QCobject<-new("QCIllumina")
+       arrayID(QCobject)<-as.character(pData(object)$Sentrix_ID[1])
+       arrayType(QCobject)<-arrayType
+    }
+    R<-assayDataElement(object,"R")
+    G<-assayDataElement(object,"G")
+    int<-R+G
+    for (smp in sampleNames(object)) {
+      if (arrayType(QCobject) %in% c("Sentrix96","Sentrix16")) {
+        co<-pData(object)[smp,"Col"]
+        ro<-pData(object)[smp,"Row"]
+    	} else if (arrayType(QCobject)=="Slide12"){
+        co<-match(pData(object)[smp,"Sentrix_Position"],LETTERS)
+        ro<-1
+    	}
+      if (pData(object)[smp,"Sentrix_ID"]!=arrayID(QCobject)) stop("data in QCobject cannot be from different arrays")
+  		QCobject@samples[ro,co]<-smp
+  		QCobject@annotation[ro,co]<-annotation(object)
+  		QCobject@validn[ro,co]<-sum(!is.na(int[,smp]))
+  		QCobject@intensityMed[ro,co]<-median(int[,smp],na.rm=TRUE)
+  		QCobject@greenMed[ro,co]<-median(G[,smp],na.rm=TRUE)
+  		QCobject@redMed[ro,co]<-median(R[,smp],na.rm=TRUE)
+  	
+    }
+    QCobject
   }
-  R<-assayDataElement(object,"R")
-  G<-assayDataElement(object,"G")
-  int<-R+G
-  for (smp in sampleNames(object)) {
-    if (arrayType(QCobject) %in% c("Sentrix96","Sentrix16")) {
-      co<-pData(object)[smp,"Col"]
-      ro<-pData(object)[smp,"Row"]
-  	} else if (arrayType(QCobject)=="Slide12"){
-      co<-match(pData(object)[smp,"Sentrix_Position"],LETTERS)
-      ro<-1
-  	}
-    if (pData(object)[smp,"Sentrix_ID"]!=arrayID(QCobject)) stop("data in QCobject cannot be from different arrays")
-		QCobject@samples[ro,co]<-smp
-		QCobject@annotation[ro,co]<-annotation(object)
-		QCobject@validn[ro,co]<-sum(!is.na(int[,smp]))
-		QCobject@intensityMed[ro,co]<-median(int[,smp],na.rm=TRUE)
-		QCobject@greenMed[ro,co]<-median(G[,smp],na.rm=TRUE)
-		QCobject@redMed[ro,co]<-median(R[,smp],na.rm=TRUE)
-	
-  }
-  QCobject
 }
 
 BeadstudioQC<-function(object,QClist=list(),arrayType="Sentrix96") {
