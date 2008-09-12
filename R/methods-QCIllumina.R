@@ -87,7 +87,7 @@ setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMe
 			validn = image.plate(object@validn,main="valid probes"),
 			annotation = checkerboard(object@annotation,main="annotation"),
 			samples = checkerboard(object@samples,main="samples"),
-			ptpdiff = image.plate(object@validn,main="point to point relative difference"))
+			ptpdiff = image.plate(object@ptpdiff,main="point to point relative difference"))
 	 invisible()
 })
 
