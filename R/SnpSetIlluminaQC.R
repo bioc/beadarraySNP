@@ -79,6 +79,10 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
     R<-assayDataElement(object,"R")
     G<-assayDataElement(object,"G")
     int<-R+G
+    idx<-order(numericCHR(pData(featureData(object))$CHR),pData(featureData(object))$MapInfo)
+    int<-int[idx,]
+    ptpdiff<-abs(int[-1,]-int[-nrow(int),])/(int[-1,]+int[-nrow(int),])
+    
     for (smp in sampleNames(object)) {
       if (arrayType(QCobject) %in% c("Sentrix96","Sentrix16")) {
         co<-pData(object)[smp,"Col"]
@@ -94,6 +98,7 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
   		QCobject@intensityMed[ro,co]<-median(int[,smp],na.rm=TRUE)
   		QCobject@greenMed[ro,co]<-median(G[,smp],na.rm=TRUE)
   		QCobject@redMed[ro,co]<-median(R[,smp],na.rm=TRUE)
+  		QCobject@ptpdiff[ro,co]<-median(ptpdiff[,smp],na.rm=TRUE)
   	
     }
     QCobject

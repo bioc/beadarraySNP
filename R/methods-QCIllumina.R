@@ -7,7 +7,8 @@ setMethod("initialize", "QCIllumina",
 									 redMed = new("matrix"),
 									 validn = new("matrix"),
 									 annotation = new("matrix"),
-									 samples = new("matrix")
+									 samples = new("matrix"),
+									 ptpdiff = new("matrix")
 									) {
 									.Object@arrayID<-arrayID
 									.Object@intensityMed<-intensityMed
@@ -16,7 +17,7 @@ setMethod("initialize", "QCIllumina",
 									.Object@validn<-validn
 									.Object@annotation<-annotation
 									.Object@samples<-samples
-									
+									.Object@ptpdiff<-ptpdiff
 									arrayType(.Object) <-arrayType
 									
 								  .Object
@@ -51,6 +52,7 @@ setReplaceMethod("arrayType", "QCIllumina", function(object, value) {
 	object@validn<-getmatrix(object@validn)
 	object@annotation<-getmatrix(object@annotation)
 	object@samples<-getmatrix(object@samples)
+	object@ptpdiff<-getmatrix(object@ptpdiff)
   object
 })
 
@@ -63,7 +65,7 @@ setReplaceMethod("arrayID", "QCIllumina", function(object, value) {
 
 setMethod("arrayID", "QCIllumina", function(object) object@arrayID)
 
-setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMed","redMed","validn","annotation","samples")) {
+setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMed","redMed","validn","annotation","samples","ptpdiff")) {
 
   image.plate<-function(z,xdim=dim(z)[2],ydim=dim(z)[1],col = gray (0:99/ 99), zlim=c(0,max(z,na.rm=TRUE)),...) {
     z[is.na(z)]<-0
@@ -84,7 +86,8 @@ setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMe
 			redMed = image.plate(object@redMed, main="median Red", col= rgb(0:255,0,0,max=255)), 
 			validn = image.plate(object@validn,main="valid probes"),
 			annotation = checkerboard(object@annotation,main="annotation"),
-			samples = checkerboard(object@samples,main="samples"))
+			samples = checkerboard(object@samples,main="samples"),
+			ptpdiff = image.plate(object@validn,main="point to point relative difference"))
 	 invisible()
 })
 
@@ -126,7 +129,7 @@ pdfQC<-function(object,filename="arrayQC.pdf",by=10) {
   plotQC(object,"greenMed")
   plotQC(object,"redMed")
   plotQC(object,"intensityMed")
-  plotQC(object,"validn")
+  plotQC(object,"ptpdiff")
   plotQC(object,"annotation")
   plotQC(object,"samples")
   par(mfrow=c(4,1))

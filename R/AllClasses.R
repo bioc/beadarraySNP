@@ -11,7 +11,8 @@ setClass("QCIllumina",
      redMed = "matrix",
      validn = "matrix",
      annotation = "matrix",
-     samples = "matrix"
+     samples = "matrix" ,
+     ptpdiff = "matrix"
    )
 )  
    
