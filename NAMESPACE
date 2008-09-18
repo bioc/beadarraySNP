@@ -14,13 +14,13 @@ exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featur
              calculateGSR)
 
 export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
-       normalizeBetweenAlleles.SNP, normalizeWithinArrays.SNP,
-       normalizeLoci.SNP, RG2polar, polar2RG, standardNormalization, 
-       heterozygousSNPs, compareGenotypes, heterozygosity, 
+       normalizeBetweenAlleles.SNP, normalizeBetweenSubsamples.SNP, 
+       normalizeWithinArrays.SNP, normalizeLoci.SNP, RG2polar, polar2RG, 
+       standardNormalization, heterozygousSNPs, compareGenotypes, heterozygosity, 
        reportSamplesSmoothCopyNumber, reportChromosomesSmoothCopyNumber,
        pdfSamplesSmoothCopyNumber, pdfChromosomesSmoothCopyNumber,
        removeLowQualityProbes, removeLowQualitySamples,
-			 calculateQCarray, pdfQC, smoothed.intensity, renameOPA,
+       calculateQCarray, pdfQC, smoothed.intensity, renameOPA,
        calculateLOH, reportGenomeGainLossLOH, pdfChromosomeGainLossLOH,
        reportChromosomeGainLossLOH, reportGenomeIntensityPlot,
        convert2aCGH, convert2SegList, segmentate, reportGenotypeSegmentation,

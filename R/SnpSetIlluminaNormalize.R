@@ -222,6 +222,38 @@ normalizeBetweenAlleles.SNP<-function(object, method=c("quantile"), subsample="O
   res
 }
 
+normalizeBetweenSubsamples.SNP<-function(object, subsample="OPA") {
+  subsample<-getSubsample(object,subsample)
+  subsum<-summary(subsample)
+  subrows<-max(subsum)
+  subcols<-length(subsum)
+  sublevels<-names(subsum)
+  subprobes<-vector("list",  length(sublevels))
+  names(subprobes) <- sublevels
+  for (k in sublevels) subprobes[[k]] <- which(subsample %in% k)
+  R<-assayDataElement(object,"R")
+  G<-assayDataElement(object,"G")
+  for (smp in 1:ncol(object)) {
+    if (!all(is.na(R[,smp]))) {
+      nrm<-matrix(NA,ncol=subcols,nrow=subrows)
+      for (k in 1:subcols) nrm[1:subsum[k],k]<-R[subprobes[[k]],smp]
+      # Exclude columns in the matrix that contain only NA
+      valid<-apply(nrm,2,function(x) !all(is.na(x)))
+      nrm[,valid]<-normalizeQuantiles(nrm[,valid])
+      for (k in 1:subcols) R[subprobes[[k]],smp]<-nrm[1:subsum[k],k]
+      nrm<-matrix(NA,ncol=subcols,nrow=subrows)
+      for (k in 1:subcols) nrm[1:subsum[k],k]<-G[subprobes[[k]],smp]
+      valid<-apply(nrm,2,function(x) !all(is.na(x)))
+      nrm[,valid]<-normalizeQuantiles(nrm[,valid])
+      for (k in 1:subcols) G[subprobes[[k]],smp]<-nrm[1:subsum[k],k]
+    }
+  }
+  res<-object
+  assayData(res)$R<-R
+  assayData(res)$G<-G
+  res
+}
+
 normalizeWithinArrays.SNP<-function(object, callscore=0.5, normprob=0.5, quantilepersample=FALSE,
   relative=FALSE, fixed=FALSE, useAll=FALSE, subsample="OPA", Q.scores="callProbability") {
 
