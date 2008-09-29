@@ -223,6 +223,7 @@ normalizeBetweenAlleles.SNP<-function(object, method=c("quantile"), subsample="O
 }
 
 normalizeBetweenSubsamples.SNP<-function(object, subsample="OPA") {
+  require(limma)
   subsample<-getSubsample(object,subsample)
   subsum<-summary(subsample)
   subrows<-max(subsum)

@@ -161,6 +161,15 @@ setMethod("calculateGSR", "SnpSetIllumina", function(object) {
   assayDataElementReplace(object,"GSR",sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/"))
 })
 
+readReportfile<-function(reportfile) {
+  firstfield <- scan(reportfile, what = "", sep = ",", flush = TRUE,
+          quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE,nlines=100)
+  skip <- grep("[Data]", firstfield, fixed=TRUE)
+  if (length(skip) == 0) stop("Cannot find \"[Data]\" in report file")
+  read.table(reportfile, skip=skip, header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE,colClasses="character")
+
+}
+
 read.SnpSetSampleSheet<-function(samplesheet) {
   manifests<-NULL
   return(samples)
@@ -173,7 +182,9 @@ read.SnpSetBeadstudio<-function(samples,reportfile) {
 
 }
 
-
+GetBeadStudioSampleNames<-function(reportfile) {
+   unique(readReportfile(reportfile))$"Sample ID"
+}
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
   reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, ...) {
@@ -303,12 +314,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       warning(paste("OPA info file could not be (uniquely) identified for",OPAname,"Using chromosomal position from report file"))
       chrompos.fromReport<-TRUE
     }
-    # Import data from BeadStudio report file
-    firstfield <- scan(reportfile, what = "", sep = ",", flush = TRUE,
-            quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE,nlines=100)
-    skip <- grep("[Data]", firstfield, fixed=TRUE)
-    if (length(skip) == 0) stop("Cannot find \"[Data]\" in report file")
-    alldata<-read.table(reportfile, skip=skip, header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE,colClasses="character")
+    alldata<-readReportfile(reportfile)
     # Integrity checks
     essentialcols<-c("SNP Name","Sample ID","GC Score","GT Score","X Raw","Y Raw")
     if (chrompos.fromReport) essentialcols<-c(essentialcols,c("Chr","Position"))
