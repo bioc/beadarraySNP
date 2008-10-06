@@ -27,4 +27,4 @@ export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        plotGoldenGate4OPA, createCNSummary, alterCN,
        getDNAindex, interactiveCNselect, setRealCN,
        Sample_Map2Samplesheet, pdfBeadstudioQC, BeadstudioQC,
-       calculateLair,GetBeadStudioSampleNames)
+       calculateLair,GetBeadStudioSampleNames, dist.GT)

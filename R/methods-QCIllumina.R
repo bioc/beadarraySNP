@@ -8,7 +8,9 @@ setMethod("initialize", "QCIllumina",
 									 validn = new("matrix"),
 									 annotation = new("matrix"),
 									 samples = new("matrix"),
-									 ptpdiff = new("matrix")
+									 ptpdiff = new("matrix"),
+									 callrate = new("matrix"),
+									 hetPerc = new("matrix")
 									) {
 									.Object@arrayID<-arrayID
 									.Object@intensityMed<-intensityMed
@@ -18,8 +20,9 @@ setMethod("initialize", "QCIllumina",
 									.Object@annotation<-annotation
 									.Object@samples<-samples
 									.Object@ptpdiff<-ptpdiff
+									.Object@callrate<-callrate
+									.Object@hetPerc<-hetPerc
 									arrayType(.Object) <-arrayType
-									
 								  .Object
 })
 
@@ -53,6 +56,8 @@ setReplaceMethod("arrayType", "QCIllumina", function(object, value) {
 	object@annotation<-getmatrix(object@annotation)
 	object@samples<-getmatrix(object@samples)
 	object@ptpdiff<-getmatrix(object@ptpdiff)
+	object@callrate<-getmatrix(object@callrate)
+	object@hetPerc<-getmatrix(object@hetPerc)
   object
 })
 
@@ -65,18 +70,22 @@ setReplaceMethod("arrayID", "QCIllumina", function(object, value) {
 
 setMethod("arrayID", "QCIllumina", function(object) object@arrayID)
 
-setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMed","redMed","validn","annotation","samples","ptpdiff")) {
-
-  image.plate<-function(z,xdim=dim(z)[2],ydim=dim(z)[1],col = gray (0:99/ 99), zlim=c(0,max(z,na.rm=TRUE)),...) {
+setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMed","redMed","validn","annotation","samples","ptpdiff","hetPerc","callrate")) {
+  # numeric fields
+  image.plate<-function(z,xdim=dim(z)[2],ydim=dim(z)[1],col = gray (0:99/ 99), zlim=c(0,max(z,na.rm=TRUE)),xlab=NULL,...) {
+    if (is.null(xlab)) {
+      z.limits<-format(c(min(z,na.rm=TRUE),zlim[2]))
+      xlab<-paste("range: ",z.limits[1],"-",z.limits[2])
+    }
     z[is.na(z)]<-0
-    image(1:xdim,1:ydim,t(z), zlim=zlim, col = col ,xlab="Col",ylab="Row", ...)
+    image(1:xdim,1:ydim,t(z), zlim=zlim, col = col ,xlab=xlab,ylab="Row",...)
   }
-
+  # character fields
 	checkerboard<-function(z,...) {
 	  H<-matrix(rep(c(1,0.9),length(z)/2),nrow(z),ncol(z))
     H[,seq(2,ncol(z),by=2)]<-1.9-H[,seq(2,ncol(z),by=2)]
-    image.plate(H,zlim=c(0,1),...)
-    text(col(z),row(z),labels=z,cex=0.66)
+    image.plate(H,zlim=c(0,1),xlab="",...)
+    text(col(z),row(z)-((col(z)-1)%%4)*0.2+0.3,labels=z,cex=0.6)
 	 }
 	 
 	 type<-match.arg(type)
@@ -87,7 +96,9 @@ setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMe
 			validn = image.plate(object@validn,main="valid probes"),
 			annotation = checkerboard(object@annotation,main="annotation"),
 			samples = checkerboard(object@samples,main="samples"),
-			ptpdiff = image.plate(object@ptpdiff,main="point to point relative difference"))
+			ptpdiff = image.plate(object@ptpdiff,main="point to point relative difference"),
+      callrate = image.plate(object@callrate,main="call rate"),
+      hetPerc  = image.plate(object@hetPerc,main="% heterozygote"))
 	 invisible()
 })
 
@@ -123,13 +134,15 @@ setMethod("reportSamplePanelQC", "QCIllumina", function(object, by=10, legend=TR
 
 pdfQC<-function(object,filename="arrayQC.pdf",by=10) {
   pdf(filename,paper="a4",width=7.2,height=11)
-  if (arrayType(object)=="Sentrix96") par(mfrow=c(3,2),mar=c(2,2,3,1))
-  else if(arrayType(object)=="Sentrix16") par(mfrow=c(2,3),mar=c(2,2,3,1))
-  else par(mfrow=c(6,1),mar=c(2,2,3,1))
+  if (arrayType(object)=="Sentrix96") par(mfrow=c(4,2),mar=c(4,2,3,1))
+  else if(arrayType(object)=="Sentrix16") par(mfrow=c(2,4),mar=c(4,2,3,1))
+  else par(mfrow=c(8,1),mar=c(4,2,3,1))
   plotQC(object,"greenMed")
   plotQC(object,"redMed")
   plotQC(object,"intensityMed")
   plotQC(object,"ptpdiff")
+  plotQC(object,"callrate")
+  plotQC(object,"hetPerc")
   plotQC(object,"annotation")
   plotQC(object,"samples")
   par(mfrow=c(4,1))

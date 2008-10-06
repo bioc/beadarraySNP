@@ -78,6 +78,8 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
     }
     R<-assayDataElement(object,"R")
     G<-assayDataElement(object,"G")
+    conf<-assayDataElement(object,"callProbability")
+    calls<-assayDataElement(object,"call")
     int<-R+G
     idx<-order(numericCHR(pData(featureData(object))$CHR),pData(featureData(object))$MapInfo)
     int<-int[idx,]
@@ -99,7 +101,11 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
   		QCobject@greenMed[ro,co]<-median(G[,smp],na.rm=TRUE)
   		QCobject@redMed[ro,co]<-median(R[,smp],na.rm=TRUE)
   		QCobject@ptpdiff[ro,co]<-median(ptpdiff[,smp],na.rm=TRUE)
-  	
+  		probes<-conf[,smp]>0.25
+  		probes[is.na(probes)]<-FALSE
+  	  QCobject@callrate[ro,co]<-sum(probes)/length(probes)
+  	  if (sum(probes)>0)  QCobject@hetPerc[ro,co]<-sum(calls[probes,smp]=="H")/sum(probes)
+  	  else QCobject@hetPerc[ro,co]<-0
     }
     QCobject
   }
@@ -138,4 +144,22 @@ pdfBeadstudioQC<-function(QClist,basename="beadstudio",by=10) {
   for (qc in names(QClist)) 
     pdfQC(QClist[[qc]],filename=paste(basename,"_",qc,".pdf",sep=""))
 
+}
+
+dist.GT<-function(object) {
+	n <- ncol(object)
+	m <- nrow(object)
+	H <- matrix(rep(0,n^2),n,n)
+	for (i in 1:n) {
+		for (j in 1:i) {
+			if (i==j) H[i,i] <- 1
+			else {
+			  probes<-!is.na(exprs(object)[,i]) & !is.na(exprs(object)[,j])
+				H[i,j] <- 1- sum(exprs(object)[probes,i]==exprs(object)[probes,j])/sum(probes)
+				H[j,i] <- H[i,j]
+			}
+		}
+  }
+  colnames(H)<-rownames(H)<-sampleNames(object)
+  return(as.dist(H))
 }

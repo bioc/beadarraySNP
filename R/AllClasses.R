@@ -12,7 +12,9 @@ setClass("QCIllumina",
      validn = "matrix",
      annotation = "matrix",
      samples = "matrix" ,
-     ptpdiff = "matrix"
+     ptpdiff = "matrix" ,
+     callrate = "matrix" ,
+     hetPerc = "matrix"
    )
 )  
    
