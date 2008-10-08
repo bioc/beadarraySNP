@@ -334,7 +334,7 @@ normalizeLoci.SNP <- function(
     intensity<-assayData(object)$G + assayData(object)$R
   switch(method, normals = {
     probe.med<-apply(intensity[,NorTum,drop=FALSE],1,median,na.rm=TRUE)
-    if (!all(Gender)) {
+    if (!all(Gender) & any(Gender)) {
       if ("CHR" %in% varLabels(featureData(object))) {
        # Handle Sexchromosomes
         numChrom<-numericCHR(pData(featureData(object))[,"CHR"])

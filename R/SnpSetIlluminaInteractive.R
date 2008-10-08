@@ -123,6 +123,97 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   invisible(cn.sum)
 }
 
+plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,interact=FALSE,panels=list(p1=c(1,2,3,22),p2=c(5,6,7,8,9),p3=c(10,11,12,13,14,15,21),p4=c(4,16,17,18,19,20,98,99)),...) {
+  if (!all(c("lair","nor.gt","loh") %in% assayDataElementNames(object)))
+    stop("'calculateLOH' should be performed before making this plot")
+  if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
+    stop("'segmentate' should be performed before making this plot")
+  # select snps for each panel
+  chrom<-numericCHR(featureData(object)$CHR)
+  subsample<-rep(NA,nrow(object))
+  for (p in 1:length(panels)) {
+     subsample[chrom %in% numericCHR(panels[[p]])]<- p
+  }
+  # exclude probes on chromosomes not on panels (default MT, XY)
+  subsample<-factor(subsample)
+  if (length(sample)!=1) stop("Only 1 sample can be handled at a time")
+  if (is.numeric(sample)) {
+    if(sample<1 | sample>ncol(object)) stop(paste("sample",sample,"is not between 1 and ",ncol(object)))
+  } else {
+    if (!(sample %in% sampleNames(object))) stop(paste(sample,"is not a sample name in the object"))
+  }
+  if (is.null(cn.sum)) cn.sum<-createCNSummary(object,1)
+  if (is.null(main)) {
+    if (is.numeric(sample)) main=sampleNames(object)[sample]
+    else main=sample
+  }
+  # setup plot regions
+  par(mar=c(1,3,3,1))
+  plot(0,type="n",main=main,ylab="",yaxt="none",xlab="",xaxt="none",...)
+  if (interact) y.bottom<-0 else y.bottom<-1.2
+  par(usr=c(0,1,y.bottom,14))
+  y.base<-12
+  for (subsmp in levels(subsample)) {
+    selection<-subsample == subsmp
+    chrs<-summary(as.factor(chrom[selection]))
+    selection<-selection & chrom %in% names(chrs[chrs>=10])
+    selected.n<-sum(selection)
+    # Horizontal section in subplot
+    abline(h=y.base+c(-0.25,0.25,1,2),col=c("black","black","grey","black"))
+    #
+    if (plotRaw) points((1:selected.n)/selected.n,y.base+assayData(object)$observed[selection,sample],pch=".")
+    # Chromosome annotation
+    chr<-chrom[selection]
+    xax<-getMidMaxIdx(chr)
+    text(xax$midpos/selected.n,y.base-1,characterCHR(row.names(xax)),pos=3)
+    axis(2,y.base+c(0.5,1,1.5),c(0.5,1,1.5))
+    segments(xax$maxpos/selected.n,y.base-1,xax$maxpos/selected.n,y.base+2)
+    # Values from segmentation function
+    predicted<-assayData(object)$predicted[selection,sample]
+    points((1:selected.n)/selected.n,y.base+predicted,pch="-",col="red")
+    # cn from user
+    st.sel<-which(cn.sum$states$opa == subsmp)
+    st.pred<-cn.sum$states$intensity[st.sel]
+    st.tcn<-cn.sum$states$copynumber[st.sel]
+    trueCN<-st.tcn[match(assayData(object)$predicted[selection,sample],st.pred)]
+    for (i in unique(trueCN)) {
+      probes<-trueCN == i
+      predicted[probes]<-mean(predicted[probes])
+    }
+    points((1:selected.n)/selected.n,y.base+predicted,pch="-",col="green")
+    # Annotation of segments. Also subdivide at chromosomal boundaries
+    idx<-which(c(trueCN,trueCN[length(trueCN)])!=c(-100,trueCN) | c(chr[1],chr)!=c(chr,chr[length(chr)]))
+    posi<-(idx+c(idx[-1],length(trueCN)+1))/2 -0.5
+    text(posi/selected.n,y.base-0.7,trueCN[idx],pos=3,col="green" )
+    segments(idx/selected.n,y.base-1,idx/selected.n,y.base-0.25,col="green")
+    # lesser allele intensity ratio
+    lair.offset<- -0.15
+    lair.range<- 0.40
+    het.nrm<-assayData(object)$nor.gt[selection,sample]=="TRUE"
+    het.nrm<-names(het.nrm)[het.nrm]
+    het.nrm<-het.nrm[!is.na(het.nrm)]
+    idx<-which(featureNames(object)[selection] %in% het.nrm)
+    points(idx/selected.n,y.base+lair.offset+assayData(object)$lair[het.nrm,sample]*lair.range,pch="-",col="blue")
+    # LOH + quality
+    loh.offset<- -0.25
+    loh.range<- 0.10
+    loh.width<- 1.5
+    q.col<-ifelse(assayData(object)$GSR[het.nrm,sample]<0.8,"mediumblue","green")
+    col<-ifelse(assayData(object)$call[het.nrm,sample]=="H",q.col,"red")
+    segments(idx/selected.n,y.base+loh.offset,idx/selected.n,y.base+loh.offset+loh.range,lwd=loh.width,col=col)
+    #
+    y.base<-y.base-3
+  }
+  # plot info in lower panel
+  abline(h=2)
+  if (interact) {
+    rect(c(0.9,0.9),c(0,1),c(1,1),c(1,2))
+    text(0.9,c(0.5,1.5),c("Redraw","Raw data"),pos=4)
+  }
+  text(0.02,y.bottom+0.4,paste("Target Index",cn.sum$dnaIndex,"Current index",format(getDNAindex(cn.sum),digits=2,nsmall=2)),adj=0)
+  invisible(cn.sum)
+}
+
 createCNSummary<-function(object,sample,dnaIndex=1,subsample="OPA"){
   deftarget<-round(dnaIndex*2)
   subsample<-getSubsample(object,subsample)

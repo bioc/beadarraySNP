@@ -24,7 +24,7 @@ export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        calculateLOH, reportGenomeGainLossLOH, pdfChromosomeGainLossLOH,
        reportChromosomeGainLossLOH, reportGenomeIntensityPlot,
        convert2aCGH, convert2SegList, segmentate, reportGenotypeSegmentation,
-       plotGoldenGate4OPA, createCNSummary, alterCN,
+       plotGoldenGate4OPA, plotGenomePanels, createCNSummary, alterCN,
        getDNAindex, interactiveCNselect, setRealCN,
        Sample_Map2Samplesheet, pdfBeadstudioQC, BeadstudioQC,
        calculateLair,GetBeadStudioSampleNames, dist.GT)
