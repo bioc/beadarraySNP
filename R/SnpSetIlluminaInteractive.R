@@ -51,7 +51,7 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   } else {
     if (!(sample %in% sampleNames(object))) stop(paste(sample,"is not a sample name in the object"))
   }
-  if (is.null(cn.sum)) cn.sum<-createCNSummary(object,1)
+  if (is.null(cn.sum)) cn.sum<-createCNSummary(object,sample)
   if (is.null(main)) {
     if (is.numeric(sample)) main=sampleNames(object)[sample]
     else main=sample
@@ -132,7 +132,7 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
   chrom<-numericCHR(featureData(object)$CHR)
   subsample<-rep(NA,nrow(object))
   for (p in 1:length(panels)) {
-     subsample[chrom %in% numericCHR(panels[[p]])]<- p
+    subsample[chrom %in% numericCHR(panels[[p]])]<- p
   }
   # exclude probes on chromosomes not on panels (default MT, XY)
   subsample<-factor(subsample)
@@ -142,7 +142,7 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
   } else {
     if (!(sample %in% sampleNames(object))) stop(paste(sample,"is not a sample name in the object"))
   }
-  if (is.null(cn.sum)) cn.sum<-createCNSummary(object,1)
+  if (is.null(cn.sum)) cn.sum<-createCNSummary(object,sample,subsample="")
   if (is.null(main)) {
     if (is.numeric(sample)) main=sampleNames(object)[sample]
     else main=sample
@@ -151,8 +151,8 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
   par(mar=c(1,3,3,1))
   plot(0,type="n",main=main,ylab="",yaxt="none",xlab="",xaxt="none",...)
   if (interact) y.bottom<-0 else y.bottom<-1.2
-  par(usr=c(0,1,y.bottom,14))
-  y.base<-12
+  y.base<-length(panels)*3
+  par(usr=c(0,1,y.bottom,y.base+2))
   for (subsmp in levels(subsample)) {
     selection<-subsample == subsmp
     chrs<-summary(as.factor(chrom[selection]))
@@ -172,9 +172,9 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
     predicted<-assayData(object)$predicted[selection,sample]
     points((1:selected.n)/selected.n,y.base+predicted,pch="-",col="red")
     # cn from user
-    st.sel<-which(cn.sum$states$opa == subsmp)
-    st.pred<-cn.sum$states$intensity[st.sel]
-    st.tcn<-cn.sum$states$copynumber[st.sel]
+    #st.sel<-which(cn.sum$states$opa == subsmp)
+    st.pred<-cn.sum$states$intensity
+    st.tcn<-cn.sum$states$copynumber
     trueCN<-st.tcn[match(assayData(object)$predicted[selection,sample],st.pred)]
     for (i in unique(trueCN)) {
       probes<-trueCN == i
@@ -210,7 +210,7 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
     rect(c(0.9,0.9),c(0,1),c(1,1),c(1,2))
     text(0.9,c(0.5,1.5),c("Redraw","Raw data"),pos=4)
   }
-  text(0.02,y.bottom+0.4,paste("Target Index",cn.sum$dnaIndex,"Current index",format(getDNAindex(cn.sum),digits=2,nsmall=2)),adj=0)
+  text(0.02,y.bottom+0.4,paste("Target Index",format(cn.sum$dnaIndex,digits=2,nsmall=2),"Current index",format(getDNAindex(cn.sum),digits=2,nsmall=2)),adj=0)
   invisible(cn.sum)
 }
 

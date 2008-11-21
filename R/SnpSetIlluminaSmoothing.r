@@ -1,8 +1,7 @@
 # Miscellaneous support
 smoothed.intensity<-function(snpdata,smooth.lambda=4,tau=0.5) {
   chroms<-unique(fData(snpdata)[,"CHR"])
-  ind<-order(numericCHR(fData(snpdata)[,"CHR"]),fData(snpdata)[,"MapInfo"])
-  snpdata<-snpdata[ind,]
+  snpdata<-sortGenomic(snpdata)
   il.smoothed<-matrix(NA,nrow=nrow(snpdata),ncol=ncol(snpdata),dimnames=list(featureNames(snpdata),sampleNames(snpdata)))
   for (i1 in 1:ncol(snpdata) ) {
     for (chrom in chroms) {
@@ -15,8 +14,28 @@ smoothed.intensity<-function(snpdata,smooth.lambda=4,tau=0.5) {
   il.smoothed
 }
 
+smooth.probes<-function(snpdata,nProbes) {
+
+}
+
+calculateSmooth<-function(snpdata,smoothType=c("quantsmooth","probes","size"),...) {
+  smoothType<-match.arg(smoothType)
+  smoothed<-switch(smoothType,
+    quantsmooth=smoothed.intensity(snpdata,...)
+  )
+  res<-object
+  assayData(res)$smoothed<-smoothed
+  res
+}
+
 renameOPA<-function(snpdata,newOPA) {
   annotation(snpdata)<-newOPA
-  pData(featureData(snpdata))$OPA<-rep(newOPA,length(featureNames(snpdata)))
+  fData(snpdata)$OPA<-rep(newOPA,length(featureNames(snpdata)))
   snpdata
 }
+
+sortGenomic<-function(snpdata) {
+  snpdata[order(numericCHR(fData(snpdata)[,"CHR"]),fData(snpdata)[,"MapInfo"]),]
+}
+
+
