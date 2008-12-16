@@ -258,13 +258,13 @@ getDNAindex<-function(cn.sum) {
   sum(cn.sum$states$count*cn.sum$states$copynumber)/cn.sum$CN.total.nrm
 }
 
-setRealCN<-function(object,sample,cn.sum) {
+setRealCN<-function(object,sample,cn.sum,subsample="OPA") {
   if (!("inferred" %in% assayDataElementNames(object))) {
     inferred<-matrix(NA,nrow=nrow(object),ncol=ncol(object),dimnames=dimnames(assayData(object)$G))
   } else {
     inferred<-assayData(object)$inferred
   }
-  subsample<-getSubsample(object,"OPA")
+  subsample<-getSubsample(object,subsample)
   for (subsmp in levels(subsample)) {
     selection<-subsample == subsmp
     # cn from user
