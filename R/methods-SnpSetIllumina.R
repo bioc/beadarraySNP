@@ -183,7 +183,7 @@ read.SnpSetBeadstudio<-function(samples,reportfile) {
 }
 
 GetBeadStudioSampleNames<-function(reportfile) {
-   unique(readReportfile(reportfile))$"Sample ID"
+   unique(readReportfile(reportfile)$"Sample ID")
 }
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
@@ -385,7 +385,8 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
         extraSNPinfo<-cbind(extraSNPinfo,mat[,1])
         colnames(extraSNPinfo)[ncol(extraSNPinfo)]<-nam
       } else {
-        extraData[[nam]]<-mat
+        if (nam=="R")  extraData[["Rad"]]<-mat
+        else extraData[[nam]]<-mat
       }
     }
     if (is.null(names(extraData))) extraData<-NULL
@@ -410,16 +411,17 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       warning("Only a subset of the samples in the samplesheet could be found in the reportfile")
     }
     G<-G[,selected]
+    colnames(G)<-rownames(samples)
     R<-R[,selected]
+    colnames(R)<-rownames(samples)
     GenScore<-GenScore[,selected]
+    colnames(GenScore)<-rownames(samples)
     GenCall<-GenCall[,selected]
+    colnames(GenCall)<-rownames(samples)
     if (!is.null(extraData)) {
       extraData<-lapply(extraData, function(obj) obj[, selected])
+      for (nam in names(extraData)) colnames(extraData[[nam]])<-rownames(samples)
     }
-    colnames(G)<-rownames(samples)
-    colnames(R)<-rownames(samples)
-    colnames(GenScore)<-rownames(samples)
-    colnames(GenCall)<-rownames(samples)
     if (chrompos.fromReport) {
       CHR<-matrix(alldata[,"Chr"],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
       MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
