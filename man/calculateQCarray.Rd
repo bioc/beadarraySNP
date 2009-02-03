@@ -30,7 +30,7 @@ calculateQCarray(object, QCobject = NULL, arrayType="Sentrix96")
 }
 \author{Jan Oosting}
 \seealso{
-  code{link{QCIllumina-class}}, code{link{reportSamplePanelQC}}, code{link{plotQC}}
+  \code{link{QCIllumina-class}}, \code{link{reportSamplePanelQC}}, \code{link{plotQC}}
 }
 \examples{
   \dontrun{QC<-calculateQCarray(data.raw1)}

@@ -10,8 +10,8 @@
 }
 
 \usage{
-  backgroundEstimate(object,method=c("minimum","mode","intmin","anglemode"),
-  maxmode=3000,bincount=40,maxangle=0.3,subsample="OPA")
+  backgroundEstimate(object,method=c("minimum", "mode","intmin", 
+  "anglemode"), maxmode=3000, bincount=40, maxangle=0.3, subsample="OPA")
 }
 \arguments{
   \item{object}{SnpSetIllumina object}
@@ -36,7 +36,7 @@
     bins, and the minimum for this allele is determined for probes where the 
     other allele falls in a bin. A linear fit is determined though the minimum
     values to obtain a gradually increasing value.\cr
-  \code{anglemode}: This model finds the density modes closest to 0 and $\frac{\pi}{2}$  
+  \code{anglemode}: This model finds the density modes closest to 0 and \eqn{\frac{\pi}{2}}  
     for polar transformed intensities, and uses this to determine background.
 }
 \value{
