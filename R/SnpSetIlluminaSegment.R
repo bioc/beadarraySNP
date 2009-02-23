@@ -14,8 +14,8 @@ segmentate.old<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), norm
   sl$genes<-cbind(sl$genes,subsample=subsample,
       pos.old=sl$genes[,"Position"],chr.old=sl$genes[,"Chr"])
   # create new mapping with 1 chromosome
-  sl$genes[,"Position"]<-sl$genes[,"Position"]+(sl$genes[,"Chr"]*1e9)
-  sl$genes[,"Chr"]<-rep(1,nrow(sl))
+  #sl$genes[,"Position"]<-sl$genes[,"Position"]+(sl$genes[,"Chr"]*1e9)
+  #sl$genes[,"Chr"]<-rep(1,nrow(sl))
   subsamples<-unique(as.character(subsample))
   states<-matrix(NA,ncol=ncol(sl),nrow=nrow(sl),dimnames=dimnames(sl))
   predicted<-matrix(NA,ncol=ncol(sl),nrow=nrow(sl),dimnames=dimnames(sl))
@@ -44,7 +44,7 @@ segmentate.old<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), norm
 
 segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normalizedTo=2, doLog=TRUE, doMerge= FALSE, useLair=FALSE, subsample="OPA") {
   method<-match.arg(method)
-  if (method=="new") {
+  if (method=="DNACopy") {
     object<-sortGenomic(object)
     if (!require(DNAcopy))
       stop("package `DNAcopy` is not installed")
@@ -53,10 +53,19 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
       observed<-log2(observed)  
     states<-matrix(NA,ncol=ncol(observed),nrow=nrow(observed),dimnames=dimnames(observed))
     predicted<-states
-    cna.intensity<-smooth.CNA(CNA(observed,numericCHR(fData(object)$CHR),fData(object)$MapInfo,sampleid=sampleNames(object)))
+    chrom<-numericCHR(fData(object)$CHR)
+    maploc<-fData(object)$MapInfo
+    cna.intensity<-smooth.CNA(CNA(observed,chrom,maploc,sampleid=sampleNames(object)))
     seg.intensity<-DNAcopy::segment(cna.intensity)
-    samples<-unique(seg.intensity$output$ID)
+    assays<-unique(seg.intensity$output$ID)
     seg.intensity<-split(seg.intensity$output,seg.intensity$output$ID)
+    for (assay in 1:length(assays)) {
+      seg.smp<-seg.intensity[[assays[assay]]]
+      for(state in 1:nrow(seg.smp)) {
+        states[chrom==seg.smp$chrom[state] & maploc>=seg.smp$loc.start[state] & maploc<=seg.smp$loc.end[state],assay]<-state
+        predicted[chrom==seg.smp$chrom[state] & maploc>=seg.smp$loc.start[state] & maploc<=seg.smp$loc.end[state],assay]<-seg.smp$seg.mean[state]
+      }
+    }
     res<-object
     assayData(res)$observed<-observed # in case of transformations intensity slot is not enough
     assayData(res)$states<-states
@@ -67,7 +76,7 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
       lair.predicted<-lair.states
       lair<-assayData(object)$lair
       lair[!assayData(object)$nor.gt]<-NA
-      cna.lair<-CNA(lair,numericCHR(fData(object)$CHR),fData(object)$MapInfo,sampleid=sampleNames(object))
+      cna.lair<-CNA(lair,chrom,maploc,sampleid=sampleNames(object))
       seg.lair<-DNAcopy::segment(cna.lair)
       assayData(res)$lair.states<-lair.states
       assayData(res)$lair.predicted<-lair.predicted
