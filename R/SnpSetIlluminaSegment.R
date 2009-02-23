@@ -1,6 +1,9 @@
 # segmentation on SNPSetIllimuna objects
 # author: J. Oosting
-segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normalizedTo=2, doLog=TRUE, doMerge= FALSE, subsample="OPA") {
+
+
+
+segmentate.old<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normalizedTo=2, doLog=TRUE, doMerge= FALSE, subsample="OPA") {
   # perform segmentation,
   # add states and predicted copy numbers to assayData
   method<-match.arg(method)
@@ -37,4 +40,39 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
   assayData(res)$states<-states
   assayData(res)$predicted<-predicted
   res
+}
+
+segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normalizedTo=2, doLog=TRUE, doMerge= FALSE, useLair=FALSE, subsample="OPA") {
+  method<-match.arg(method)
+  if (method=="new") {
+    object<-sortGenomic(object)
+    if (!require(DNAcopy))
+      stop("package `DNAcopy` is not installed")
+    observed<-assayData(object)$intensity/normalizedTo
+    if (doLog) 
+      observed<-log2(observed)  
+    states<-matrix(NA,ncol=ncol(observed),nrow=nrow(observed),dimnames=dimnames(observed))
+    predicted<-states
+    cna.intensity<-smooth.CNA(CNA(observed,numericCHR(fData(object)$CHR),fData(object)$MapInfo,sampleid=sampleNames(object)))
+    seg.intensity<-DNAcopy::segment(cna.intensity)
+    samples<-unique(seg.intensity$output$ID)
+    seg.intensity<-split(seg.intensity$output,seg.intensity$output$ID)
+    res<-object
+    assayData(res)$observed<-observed # in case of transformations intensity slot is not enough
+    assayData(res)$states<-states
+    assayData(res)$predicted<-predicted
+    
+    if (useLair) {
+      lair.states<-matrix(NA,ncol=ncol(observed),nrow=nrow(observed),dimnames=dimnames(observed))
+      lair.predicted<-lair.states
+      lair<-assayData(object)$lair
+      lair[!assayData(object)$nor.gt]<-NA
+      cna.lair<-CNA(lair,numericCHR(fData(object)$CHR),fData(object)$MapInfo,sampleid=sampleNames(object))
+      seg.lair<-DNAcopy::segment(cna.lair)
+      assayData(res)$lair.states<-lair.states
+      assayData(res)$lair.predicted<-lair.predicted
+    }
+    
+    res
+  } else segmentate.old(object, method, normalizedTo, doLog, doMerge, subsample)
 }
