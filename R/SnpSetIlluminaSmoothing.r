@@ -14,19 +14,23 @@ smoothed.intensity<-function(snpdata,smooth.lambda=4,tau=0.5) {
   il.smoothed
 }
 
-smooth.probes<-function(snpdata,nProbes) {
+smoothed.probes<-function(snpdata,sProbes=10) {
+  
+}
+
+smoothed.size<-function(snpdata,sSize=1e6) {
 
 }
 
-calculateSmooth<-function(snpdata,smoothType=c("quantsmooth","probes","size"),...) {
-  smoothType<-match.arg(smoothType)
+setMethod("calculateSmooth", c("SnpSetIllumina","character"), function(object,smoothType,...) {
+  smoothType<-match.arg(smoothType,c("quantsmooth","probes","size"))
   smoothed<-switch(smoothType,
-    quantsmooth=smoothed.intensity(snpdata,...)
+    quantsmooth=smoothed.intensity(object,...)
   )
   res<-object
   assayData(res)$smoothed<-smoothed
   res
-}
+})
 
 renameOPA<-function(snpdata,newOPA) {
   annotation(snpdata)<-newOPA
@@ -34,8 +38,5 @@ renameOPA<-function(snpdata,newOPA) {
   snpdata
 }
 
-sortGenomic<-function(snpdata) {
-  snpdata[order(numericCHR(fData(snpdata)[,"CHR"]),fData(snpdata)[,"MapInfo"]),]
-}
 
 

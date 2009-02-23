@@ -12,7 +12,7 @@ setRealCN(object, sample, cn.sum, subsample="OPA")
   \item{object}{class SnpSetIllumina }
   \item{sample}{sample identifier}
   \item{cn.sum}{list, see \code{createCNSummary}}
-  \item{subample}{"OPA"}
+  \item{subsample}{"OPA"}
 }
 \value{
   SnpSetIllumina object with \code{inferred} element of \code{AssayData} slot set 

@@ -51,14 +51,17 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
   if (class(object)!="SnpSetIllumina") stop("object not usable for this function")
   # test for beadstudio combined samplesheet
   barcodesCol<-grep("^SentrixBarcode_",colnames(pData(object)))
-  if (length(barcodesCol) > 0) {
+  if ((length(barcodesCol) > 0) | is.list(QCobject)) {
     # make a (list of) qcobject for all opapanels in samplesheet
-    qcobjects<-list()
+    if (is.null(QCobject)) qcobjects<-list()
+    else qcobjects<-QCobject
     opapanels<-sub("^SentrixBarcode_","",colnames(pData(object))[barcodesCol])
     opaAnnot<-annotation(object)[match(opapanels,LETTERS)]
     for (opa in 1:length(barcodesCol)) {
       probes<-pData(featureData(object))$OPA==opaAnnot[opa]
-      for (barcode in unique(pData(object)[,barcodesCol[opa]])) {
+      barcodes<-unique(pData(object)[,barcodesCol[opa]])
+      barcodes<-barcodes[barcodes!=""]
+      for (barcode in barcodes) {
         samples<-pData(object)[,barcodesCol[opa]]==barcode
         objectsub<-object[probes,samples]
         smpPosition<-pData(objectsub)[,paste("SentrixPosition_",opapanels[opa],sep="")]
@@ -67,7 +70,8 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
         qcobjects[[barcode]]<-calculateQCarray(objectsub,qcobjects[[barcode]],arrayType)
       }
     }
-    qcobjects
+    if (length(qcobjects)==1) return(qcobjects[[1]])
+    else return(qcobjects)
   } else {
     # object should not be combined 
     if (length(annotation(object))>1) stop("function does not work with combined datasets")

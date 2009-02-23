@@ -15,6 +15,11 @@
 \alias{featureData,SnpSetIllumina-method}
 \alias{calculateGSR,SnpSetIllumina-method}
 \alias{calculateGSR}
+\alias{sortGenomic,SnpSetIllumina-method}
+\alias{sortGenomic}
+\alias{calculateSmooth,SnpSetIllumina,character-method}
+\alias{calculateSmooth}
+
 
 \title{
   Class to Contain Objects Describing High-Throughput SNP Assays.
@@ -91,6 +96,9 @@
        set the \code{pData} in the featureData slot.}
      \item{\code{calculateGSR(SnpSetIllumina)}}{calculate ratio of Gentrain score and Gencall score. Creates 
        GSR matrix in \code{assayData}. Should be performed before combining datasets.}
+     \item{\code{calculateSmooth(object,smoothType)}}{calculate smoothed data, creates \code{smoothed} matrix 
+       in \code{assayData}. \code{smoothType} can only be "quantsmooth" at the moment}
+     \item{\code{sortGenomic(SnpSetIllumina)}}{ order the data by chromosome and position on the chromosome.}
   }
   
    Derived from \code{\link[Biobase:eSet]{eSet}}:

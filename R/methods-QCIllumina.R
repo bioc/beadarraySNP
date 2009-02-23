@@ -133,21 +133,27 @@ setMethod("reportSamplePanelQC", "QCIllumina", function(object, by=10, legend=TR
 })
 
 pdfQC<-function(object,filename="arrayQC.pdf",by=10) {
-  pdf(filename,paper="a4",width=7.2,height=11)
-  if (arrayType(object)=="Sentrix96") par(mfrow=c(4,2),mar=c(4,2,3,1))
-  else if(arrayType(object)=="Sentrix16") par(mfrow=c(2,4),mar=c(4,2,3,1))
-  else par(mfrow=c(8,1),mar=c(4,2,3,1))
-  plotQC(object,"greenMed")
-  plotQC(object,"redMed")
-  plotQC(object,"intensityMed")
-  plotQC(object,"ptpdiff")
-  plotQC(object,"callrate")
-  plotQC(object,"hetPerc")
-  plotQC(object,"annotation")
-  plotQC(object,"samples")
-  par(mfrow=c(4,1))
-  reportSamplePanelQC(object,by=by)
-  dev.off()
+  reportSingleObject<-function(qcobject) {
+    if (arrayType(qcobject)=="Sentrix96") par(mfrow=c(4,2),mar=c(4,2,3,1))
+    else if(arrayType(qcobject)=="Sentrix16") par(mfrow=c(2,4),mar=c(4,2,3,1))
+    else par(mfrow=c(8,1),mar=c(4,2,3,1))
+    plotQC(qcobject,"greenMed")
+    mtext(arrayID(qcobject),at=c(0),adj=0,line=1.5)
+    plotQC(qcobject,"redMed")
+    plotQC(qcobject,"intensityMed")
+    plotQC(qcobject,"ptpdiff")
+    plotQC(qcobject,"callrate")
+    plotQC(qcobject,"hetPerc")
+    plotQC(qcobject,"annotation")
+    plotQC(qcobject,"samples")
+    par(mfrow=c(4,1))
+    reportSamplePanelQC(qcobject,by=by)
+  }
+
+  pdf(filename,width=7.2,height=11)
+  if (is.list(object)) lapply(object,reportSingleObject)
+  else reportSingleObject(object)
+  invisible(dev.off())
 }
 
 

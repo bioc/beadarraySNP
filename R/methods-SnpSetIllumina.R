@@ -46,6 +46,10 @@ setReplaceMethod("fData", c("SnpSetIllumina", "data.frame"), function(object, va
   pData(featureData(object))<- value
 })
 
+setMethod("sortGenomic", c("SnpSetIllumina"), function(object) 
+  object[order(numericCHR(fData(object)[,"CHR"]),fData(object)[,"MapInfo"]),]
+)
+
 
 .mergeAssayData<-function(x, y, newdimnames) {
   # this is derived from assayData combine method

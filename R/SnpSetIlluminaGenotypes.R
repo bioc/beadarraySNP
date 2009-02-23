@@ -60,11 +60,11 @@ calculateLair<-function(object,grouping=NULL,NorTum="NorTum",min.intensity=NULL,
 	# compute lesser allele intensity ratio value between 0 and 1 (relative to own normal)
 	if (is.null(grouping)) {
     snpdata.n<-RG2polar(object) # make sure theta and intensity exist
-    theta<-assayData(snpdata.n)$theta[,NorTum]
+    theta<-assayData(snpdata.n)$theta
     theta<-1-(theta/(pi/2)) # conform to beadstudio way AA~0, BB~1
     intensity<-assayData(snpdata.n)$intensity[,NorTum]
     gt<-assayData(snpdata.n)$call[,NorTum]
-    aa<-ab<-bb<-theta
+    aa<-ab<-bb<-theta[,NorTum]
     if (is.null(min.intensity)) {
       # this filters extremes 
       min.intensity<-quantile(apply(intensity,1,mean,na.rm=TRUE),probs=0.01)/10
@@ -88,20 +88,19 @@ calculateLair<-function(object,grouping=NULL,NorTum="NorTum",min.intensity=NULL,
     ab.avgavg<-(aa.avg+bb.avg)/2
     ab.avg[is.na(ab.avg)]<-ab.avgavg[is.na(ab.avg)]
     # Now compute lair from these values: True heterozygotes should have 1, homozygotes + LOH will have ~0
-    lair.t<-assayData(snpdata.n)$G/(assayData(snpdata.n)$G + assayData(snpdata.n)$R)
     if (use.homozygous.avg) {
       # make sure that ab.avg is between aa.avg and bb.avg by zero-ing the homozygous 
       aa.avg[aa.avg-ab.avg > -0.05]<-0
       bb.avg[bb.avg-ab.avg <  0.05]<-1
       # Use average of A and B to define endpoints
-      lair<-(lair.t-aa.avg)/(ab.avg-aa.avg)
-      lair2<-(bb.avg-lair.t)/(bb.avg-ab.avg)
+      lair<-(theta-aa.avg)/(ab.avg-aa.avg)
+      lair2<-(bb.avg-theta)/(bb.avg-ab.avg)
     } else {
       # Use 0 and 1 as endpoints
-      lair<-lair.t/ab.avg
-      lair2<-(1-lair.t)/(1-ab.avg)
+      lair<-theta/ab.avg
+      lair2<-(1-theta)/(1-ab.avg)
     }
-    lair<-ifelse(lair.t-ab.avg<0,lair,lair2)
+    lair<-ifelse(theta-ab.avg<0,lair,lair2)
     # make sure value is between 0 and 1
     lair[lair<0]<-0
     lair[lair>1]<-1

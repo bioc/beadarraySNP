@@ -3,7 +3,7 @@ import(tools, Biobase)
 exportClasses(SnpSetIllumina, QCIllumina)
 
 exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featureNames, 
-             pData, phenoData, sampleNames, samples, featureData,
+             pData, phenoData, sampleNames, samples, featureData, sortGenomic,
              "annotation<-", "description<-", "experimentData<-", "exprs<-", 
              "featureNames<-", "geneNames<-", "pData<-",
              "phenoData<-", "sampleNames<-", "assayData<-", "featureData<-",
@@ -27,5 +27,5 @@ export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        plotGoldenGate4OPA, plotGenomePanels, createCNSummary, alterCN,
        getDNAindex, interactiveCNselect, setRealCN,
        Sample_Map2Samplesheet, pdfBeadstudioQC, BeadstudioQC,
-       calculateLair,GetBeadStudioSampleNames, dist.GT, sortGenomic,
+       calculateLair,GetBeadStudioSampleNames, dist.GT, 
        calculateSmooth)

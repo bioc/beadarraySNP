@@ -23,10 +23,12 @@ calculateQCarray(object, QCobject = NULL, arrayType="Sentrix96")
   Use successive calls to \code{calculateQCarray} to process Sentrix arrays 
   with multiple probe panels.
   
+  If data is read using a samplesheet that defines manifest files it is possible to handle 
+  data with multiple manifests and/or multiple Sentrix arrays
   
 }
 \value{
-  A \code{QCIllumina} object 
+  A \code{QCIllumina} object, when multiple arrays were combined a list of \code{QCIllumina} objects 
 }
 \author{Jan Oosting}
 \seealso{
