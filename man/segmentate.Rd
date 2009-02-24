@@ -5,7 +5,7 @@
   Use snapCGH package to perform segmentation
 }
 \usage{
-segmentate(object, method = c("DNACopy", "HMM", "BioHMM", "GLAD"), normalizedTo = 2, doLog = TRUE, doMerge = FALSE, subsample = "OPA")
+segmentate(object, method = c("DNACopy", "HMM", "BioHMM", "GLAD"), normalizedTo = 2, doLog = TRUE, doMerge = FALSE, useLair = FALSE, subsample = "OPA")
 }
 \arguments{
   \item{object}{class \code{SnpSetIllumina}}
@@ -13,6 +13,7 @@ segmentate(object, method = c("DNACopy", "HMM", "BioHMM", "GLAD"), normalizedTo 
   \item{normalizedTo}{numeric}
   \item{doLog}{logical, perform transformation before segmentation, see \code{convert2seglist}}
   \item{doMerge}{logical, perform merging of close states}
+  \item{useLair}{logical, Also segmentate on lair}
   \item{subsample}{factor}
 }
 \value{

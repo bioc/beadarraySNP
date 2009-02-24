@@ -124,4 +124,3 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
   } else segmentate.old(object, method, normalizedTo, doLog, doMerge, subsample)
 }
 
-segmentate(sorteddata.seg,doLog=FALSE,useLair=TRUE)
