@@ -53,6 +53,12 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
       observed<-log2(observed)  
     states<-matrix(NA,ncol=ncol(observed),nrow=nrow(observed),dimnames=dimnames(observed))
     predicted<-states
+    if (useLair) {
+      lair.states<-matrix(NA,ncol=ncol(observed),nrow=nrow(observed),dimnames=dimnames(observed))
+      lair.predicted<-lair.states
+      lair<-assayData(object)$lair
+      lair[!assayData(object)$nor.gt]<-NA
+    }
     chrom<-numericCHR(fData(object)$CHR)
     maploc<-fData(object)$MapInfo
     cna.intensity<-smooth.CNA(CNA(observed,chrom,maploc,sampleid=sampleNames(object)))
@@ -65,23 +71,57 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
         states[chrom==seg.smp$chrom[state] & maploc>=seg.smp$loc.start[state] & maploc<=seg.smp$loc.end[state],assay]<-state
         predicted[chrom==seg.smp$chrom[state] & maploc>=seg.smp$loc.start[state] & maploc<=seg.smp$loc.end[state],assay]<-seg.smp$seg.mean[state]
       }
+      if (useLair) {
+        # Exclude segments that have no valid values
+        all.na<-aggregate(lair[,assay],by=list(states[,assay]),FUN=function(x) all(is.na(x)))
+        selection<-! states %in% all.na[all.na[,2],1]
+        # 
+        cna.lair<-CNA(lair[selection,assay],states[selection,assay],maploc[selection],sampleid=paste(sampleNames(object)[assay],"lair"))
+        seg.lair<-DNAcopy::segment(cna.lair)
+        seg.lair<-seg.lair$output
+        if (any(all.na[,2])) { # add the excluded segments again
+          exc.seg<-seg.smp[all.na[,2],]                                   
+          exc.seg$chrom<-all.na[all.na[,2],1]
+          exc.seg$seg.mean<-NA
+          seg.lair<-rbind(seg.lair,exc.seg)
+          idx<-order(seg.lair$chrom,seg.lair$loc.start)
+          seg.lair<-seg.lair[idx,]
+        }
+        # fill in missing probes (lots of them because lair only contains hetrezygote normal)
+        seg.lair$loc.start[1]<-seg.smp$loc.start[1]
+        prevstate<-seg.lair$chrom[1]
+        for (lair.state in 2:nrow(seg.lair)) {
+          if(seg.lair$chrom[lair.state]==prevstate) {
+            # put non-overlapping split in middle between 2 segments
+            seg.lair$loc.end[lair.state-1]<- (seg.lair$loc.end[lair.state-1]+seg.lair$loc.start[lair.state] )%/% 2
+            seg.lair$loc.start[lair.state]<- seg.lair$loc.end[lair.state-1]+1
+          }else{
+            seg.lair$loc.end[lair.state-1]<-seg.smp$loc.end[prevstate]
+            seg.lair$loc.start[lair.state]<-seg.smp$loc.start[seg.lair$chrom[lair.state]]
+          }
+          prevstate<-seg.lair$chrom[lair.state]
+        }
+        seg.lair$loc.end[nrow(seg.lair)]<-seg.smp$loc.end[prevstate]
+        #
+        for(state in 1:nrow(seg.lair)) {
+          lair.states[states[,assay]==seg.lair$chrom[state] & maploc>=seg.lair$loc.start[state] & maploc<=seg.lair$loc.end[state],assay]<-state
+          lair.predicted[states[,assay]==seg.lair$chrom[state] & maploc>=seg.lair$loc.start[state] & maploc<=seg.lair$loc.end[state],assay]<-seg.lair$seg.mean[state]
+        }
+        
+      }
     }
     res<-object
     assayData(res)$observed<-observed # in case of transformations intensity slot is not enough
-    assayData(res)$states<-states
+    if (useLair)
+      assayData(res)$states<-lair.states
+    else
+      assayData(res)$states<-states
     assayData(res)$predicted<-predicted
-    
     if (useLair) {
-      lair.states<-matrix(NA,ncol=ncol(observed),nrow=nrow(observed),dimnames=dimnames(observed))
-      lair.predicted<-lair.states
-      lair<-assayData(object)$lair
-      lair[!assayData(object)$nor.gt]<-NA
-      cna.lair<-CNA(lair,chrom,maploc,sampleid=sampleNames(object))
-      seg.lair<-DNAcopy::segment(cna.lair)
-      assayData(res)$lair.states<-lair.states
       assayData(res)$lair.predicted<-lair.predicted
     }
-    
     res
   } else segmentate.old(object, method, normalizedTo, doLog, doMerge, subsample)
 }
+
+segmentate(sorteddata.seg,doLog=FALSE,useLair=TRUE)
