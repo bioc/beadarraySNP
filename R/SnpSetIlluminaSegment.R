@@ -74,7 +74,7 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
       if (useLair) {
         # Exclude segments that have no valid values
         all.na<-aggregate(lair[,assay],by=list(states[,assay]),FUN=function(x) all(is.na(x)))
-        selection<-! states %in% all.na[all.na[,2],1]
+        selection<-! states[,assay] %in% all.na[all.na[,2],1]
         # 
         cna.lair<-CNA(lair[selection,assay],states[selection,assay],maploc[selection],sampleid=paste(sampleNames(object)[assay],"lair"))
         seg.lair<-DNAcopy::segment(cna.lair)
