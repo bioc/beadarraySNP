@@ -146,7 +146,7 @@ BeadstudioQC<-function(object,QClist=list(),arrayType="Sentrix96") {
 
 pdfBeadstudioQC<-function(QClist,basename="beadstudio",by=10) {
   for (qc in names(QClist)) 
-    pdfQC(QClist[[qc]],filename=paste(basename,"_",qc,".pdf",sep=""))
+    pdfQC(QClist[[qc]],filename=paste(basename,"_",qc,".pdf",sep=""),by=by)
 
 }
 

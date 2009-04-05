@@ -4,7 +4,7 @@ reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smoot
     plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
   # default grouping is by 4 in sequence of samples in snpdata
   plotLOH<-match.arg(plotLOH)
-  if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
+  grouping<-getGrouping(snpdata,grouping,by=4)
   # make sure chromosmes are sorted
   CHR<-numericCHR(pData(featureData(snpdata))[,"CHR"])
   ind<-order(CHR,pData(featureData(snpdata))[,"MapInfo"])
@@ -91,7 +91,7 @@ reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, s
   ideo.width<-0.15
   ideo.ypos<-normalizedTo+(ideo.width/2)
   plotLOH<-match.arg(plotLOH)
-  if (missing(grouping)) grouping<-floor(seq(along.with=sampleNames(snpdata),by=0.25))
+  grouping<-getGrouping(snpdata,grouping,by=4)
   if (is.null(sample.colors)) sample.colors<-c("red","green","blue","orange","brown","turquoise","yellow","purple","pink","magenta")
   # make sure chromosmes are sorted
   CHR<-numericCHR(pData(featureData(snpdata))[,"CHR"])
@@ -199,11 +199,10 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
   orientation<-match.arg(orientation)
   ind<-order(numericCHR(fData(snpdata)$CHR),fData(snpdata)$MapInfo)
   snpdata<-snpdata[ind,]
-  if (!is.null(grouping)) {
-    ind<-order(grouping)
-    snpdata<-snpdata[,ind]
-    grouping<-grouping[ind]
-  }
+  grouping<-getGrouping(snpdata,grouping)
+  ind<-order(grouping)
+  snpdata<-snpdata[,ind]
+  grouping<-grouping[ind]
   if (missing(distance.min)) distance.min=1e+9
   
   # determine gained and lost probes
@@ -260,6 +259,10 @@ reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,dis
   ind<-order(numericCHR(fData(snpdata)$CHR),fData(snpdata)$MapInfo)
   if (missing(distance.min)) distance.min=1e+9
   snpdata<-snpdata[ind,]
+  grouping<-getGrouping(snpdata,grouping)
+  ind<-order(grouping)
+  snpdata<-snpdata[,ind]
+  grouping<-grouping[ind]
   xmin<- -ncol(snpdata)*proportion
   cb.x<-xmin*0.6
   cb.w<- -xmin*0.2

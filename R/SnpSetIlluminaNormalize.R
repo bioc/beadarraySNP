@@ -24,6 +24,25 @@ getNorTum<-function(object,NorTum,required=FALSE) {
   NorTum
 }
 
+getGrouping<-function(object,grouping=NULL,by=NULL) {
+  if (is.null(grouping)) {
+    if (is.null(by)) {
+      grouping=rep(1,ncol(object))
+    } else {
+      grouping<-sort(rep(1:ceiling(ncol(object)/by),length.out=ncol(object)))
+    }
+  } else if (length(grouping)!=ncol(object)) {
+    if (length(grouping)==1 & grouping %in% colnames(pData(object))) {
+      grouping<-pData(object)[,grouping]
+    } else stop("grouping is defined incorrectly")
+  }  
+  
+  grouping<-as.factor(grouping)
+  names(grouping)<-sampleNames(object)
+  return(grouping)
+}
+
+
 getAssayData<-function(object, mat.data) {
   if (!identical(dim(assayData(object)$call),dim(mat.data))) {
     if (length(mat.data)==1) {

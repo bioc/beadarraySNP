@@ -33,6 +33,7 @@ heterozygousSNPs<-function(object,
 calculateLOH<-function(object,grouping,NorTum="NorTum",...) {
   NorTum<-getNorTum(object,NorTum)
 	#
+	grouping<-getGrouping(object,grouping)
   hetSNPs<-heterozygousSNPs(object,...)
 	loh<-matrix(FALSE,nrow=nrow(object),ncol=ncol(object),dimnames=list(featureNames(object),sampleNames(object)))
 	nor.gt<-hetSNPs
@@ -105,6 +106,7 @@ calculateLair<-function(object,grouping=NULL,NorTum="NorTum",min.intensity=NULL,
     lair[lair<0]<-0
     lair[lair>1]<-1
 	} else {
+	  grouping<-getGrouping(object,grouping)
   	lair<-assayData(object)$G/(assayData(object)$G+assayData(object)$R)
   	lair.n<-lair
     for (smp in unique(grouping)) {
