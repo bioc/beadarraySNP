@@ -1,6 +1,6 @@
 ## snp reports
 ## functions to report for all available data in a SnpSetIllumina object
-reportSamplesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
+reportSamplesSmoothCopyNumber<-function(snpdata, grouping=NULL, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
     plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ...){
   # default grouping is by 4 in sequence of samples in snpdata
   plotLOH<-match.arg(plotLOH)
@@ -86,7 +86,7 @@ pdfSamplesSmoothCopyNumber<-function(object,filename,...) {
 	dev.off() 
 }
 
-reportChromosomesSmoothCopyNumber<-function(snpdata, grouping, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
+reportChromosomesSmoothCopyNumber<-function(snpdata, grouping=NULL, normalizedTo=2, smooth.lambda=2, ridge.kappa=0, 
     plotLOH=c("none","marker","line","NorTum"), sample.colors=NULL, ideo.bleach=0.25, ...){
   ideo.width<-0.15
   ideo.ypos<-normalizedTo+(ideo.width/2)
@@ -193,7 +193,7 @@ getMidMaxIdx<-function(groups){
   data.frame(midpos,maxpos,row.names=lvls)[idx,]
 }
 
-reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSampleNames=4,distance.min,
+reportGenomeGainLossLOH<-function(snpdata,grouping=NULL,plotSampleNames=FALSE,sizeSampleNames=4,distance.min,
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",lohwidth=1,segment=101,
   orientation=c("V","H"),...) {
   orientation<-match.arg(orientation)
@@ -253,7 +253,7 @@ reportGenomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,sizeSam
 
 }
 
-reportChromosomeGainLossLOH<-function(snpdata,grouping,plotSampleNames=FALSE,distance.min,
+reportChromosomeGainLossLOH<-function(snpdata,grouping=NULL,plotSampleNames=FALSE,distance.min,
   upcolor="red",downcolor="blue",lohcolor="grey",hetcolor="lightgrey",proportion=0.2,plotLOH=TRUE,
   segment=101,...) {
   ind<-order(numericCHR(fData(snpdata)$CHR),fData(snpdata)$MapInfo)
