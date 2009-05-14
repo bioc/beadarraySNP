@@ -401,6 +401,8 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       selected<-rownames(samples)
     } else if (all(samples[, "Sample_Name"] %in% colnames(G))){
       selected<-samples[, "Sample_Name"]
+    } else if (all(samples[, "ID"] %in% colnames(G))){
+      selected<-samples[, "ID"]
     } else if (any(rownames(samples) %in% colnames(G))){
       selected<-rownames(samples)[rownames(samples) %in% colnames(G)]
     } else if (any(samples[, "Sample_Name"] %in% colnames(G))){
@@ -531,7 +533,7 @@ Sample_Map2Samplesheet<-function(samplemapfile,saveas="") {
   ss<-cbind(ss,Pool_ID="pool_id",Sentrix_ID="sentrix_id")
   # fill in empty sample_names
   empty_sampleName<-ss$Sample_Name==""
-  if (any(empty_sampleName)) ss$Sample_Name[empty_sampleName]<-ss$ID
+  if (any(empty_sampleName)) ss$Sample_Name[empty_sampleName]<-ss$ID[empty_sampleName]
   if (! saveas=="") {
     cat("[Header]\nInvestigator Name,\nProject Name,\nExperiment Name,\nDate,\n[Data]\n",file=saveas)
     write.table(ss,row.names=FALSE,sep=",",quote=FALSE,file=saveas,append=TRUE)
