@@ -339,7 +339,7 @@ normalizeLoci.SNP <- function(
     if (is.null(Gender) | !(Gender %in% colnames(pData(object)))) Gender<-rep(TRUE,ncol(object))
     else Gender<-pData(object)[,Gender]
   }
-  if (!is.logical(Gender)) Gender<-Gender=="F"
+  if (!is.logical(Gender)) Gender<-Gender %in% c("F","f","Female","female")
 
   if (length(Subject)!=ncol(object)) {
     if (is.null(Subject) | !(Subject %in% colnames(pData(object)))) Subject<-rep(1,ncol(object))

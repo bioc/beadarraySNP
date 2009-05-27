@@ -68,7 +68,7 @@ calculateLair<-function(object,grouping=NULL,NorTum="NorTum",min.intensity=NULL,
     aa<-ab<-bb<-theta[,NorTum]
     if (is.null(min.intensity)) {
       # this filters extremes 
-      min.intensity<-quantile(apply(intensity,1,mean,na.rm=TRUE),probs=0.01)/10
+      min.intensity<-quantile(apply(intensity,1,mean,na.rm=TRUE),probs=0.01,na.rm=TRUE)/10
     }
     # Compute average value of AA alleles
     aa[gt!="A" | intensity<min.intensity]<-NA

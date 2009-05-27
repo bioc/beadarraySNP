@@ -36,7 +36,7 @@ setReplaceMethod("arrayType", "QCIllumina", function(object, value) {
 		matn
 	}
 
-	value<-match.arg(value,c("Sentrix96","Sentrix16","Slide12"))
+	value<-match.arg(value,c("Sentrix96","Sentrix16","Slide12","Quad"))
 	object@arrayType <- value
   if (value=="Sentrix96") {
 		ncols<-12
@@ -47,7 +47,10 @@ setReplaceMethod("arrayType", "QCIllumina", function(object, value) {
 	} else if (value=="Slide12"){
 	  ncols<-12
 	  nrows<-1
-	}
+	} else if (value=="Quad") {
+	  ncols=2
+	  nrows=2
+  }
 	
 	object@intensityMed<-getmatrix(object@intensityMed)
 	object@greenMed<-getmatrix(object@greenMed)
@@ -134,9 +137,10 @@ setMethod("reportSamplePanelQC", "QCIllumina", function(object, by=10, legend=TR
 
 pdfQC<-function(object,filename="arrayQC.pdf",by=10) {
   reportSingleObject<-function(qcobject) {
-    if (arrayType(qcobject)=="Sentrix96") par(mfrow=c(4,2),mar=c(4,2,3,1))
+    if (arrayType(qcobject) %in% c("Sentrix96","Quad")) par(mfrow=c(4,2),mar=c(4,2,3,1))
     else if(arrayType(qcobject)=="Sentrix16") par(mfrow=c(2,4),mar=c(4,2,3,1))
-    else par(mfrow=c(8,1),mar=c(4,2,3,1))
+    else if(arrayType(qcobject)=="Slide12") par(mfrow=c(8,1),mar=c(4,2,3,1))
+    else stop("Unknown arrayType")
     plotQC(qcobject,"greenMed")
     mtext(arrayID(qcobject),at=c(0),adj=0,line=1.5)
     plotQC(qcobject,"redMed")
