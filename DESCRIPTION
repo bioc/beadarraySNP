@@ -1,11 +1,11 @@
 Package: beadarraySNP
 Type: Package
 Title: Normalization and reporting of Illumina SNP bead arrays
-Version: 1.11.0
-Date: 2009-04-06
+Version: 1.11.1
+Date: 2009-06-17
 Author: Jan Oosting
 Maintainer: Jan Oosting <j.oosting@lumc.nl>
-Depends: methods, tools, Biobase, quantsmooth
+Depends: methods, Biobase (>= 2.5.3), quantsmooth
 Suggests: aCGH, affy, limma, snapCGH, beadarray, DNAcopy
 Description: Importing data from Illumina SNP experiments and performing copy number calculations and reports.
 License: GPL V2

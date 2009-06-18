@@ -1,26 +1,26 @@
 setMethod("initialize", "SnpSetIllumina",
           function(.Object,
+                  assayData = assayDataNew(call = call,
+                                           callProbability = callProbability,
+                                           G = G, R = R, ...),
                    phenoData = new("AnnotatedDataFrame"),
                    experimentData = new("MIAME"),
                    annotation = character(),
+                   scanDates = character(),
                    call = new("matrix"),
                    callProbability = new("matrix"),
                    G = new("matrix"),
                    R = new("matrix"),
                    featureData = new("AnnotatedDataFrame"),
                    extraData = NULL,
-                   ... ) {
+                   ...) {
             .Object<-callNextMethod(.Object,
-                           assayData = assayDataNew(
-                             call = call,
-                             callProbability = callProbability,
-                             G = G,
-                             R = R,
-                             ...),
+                           assayData = assayData,
                            phenoData = phenoData,
                            experimentData = experimentData,
                            annotation = annotation,
-													 featureData = featureData)
+                           featureData = featureData,
+                           scanDates = scanDates)
             if (!is.null(extraData)) {
               for (m in names(extraData))
                 .Object<-assayDataElementReplace(.Object, m, extraData[[m]])
