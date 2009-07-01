@@ -428,6 +428,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       extraData<-lapply(extraData, function(obj) obj[, selected])
       for (nam in names(extraData)) colnames(extraData[[nam]])<-rownames(samples)
     }
+    
     if (chrompos.fromReport) {
       CHR<-matrix(alldata[,"Chr"],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
       MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
@@ -442,6 +443,16 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (!is.null(extraSNPinfo)) SNPinfo<-cbind(SNPinfo,extraSNPinfo)
     samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
   }
+  # Setting missing data to NA
+  md<- G<=0
+  G[md]<-NA
+  R[md]<-NA
+  GenCall[md]<-NA
+  GenScore[md]<-NA
+  if (!is.null(extraData)) {
+    extraData<-lapply(extraData, function(obj) {obj[md]<-NA;obj})
+  }
+  
   new("SnpSetIllumina",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, call=GenCall, callProbability=GenScore, G=G, R=R,
              featureData=new("AnnotatedDataFrame",SNPinfo,data.frame(labelDescription=colnames(SNPinfo),row.names=colnames(SNPinfo))),extraData=extraData,storage.mode="list")
 }
