@@ -9,4 +9,4 @@ Depends: methods, Biobase (>= 2.5.3), quantsmooth
 Suggests: aCGH, affy, limma, snapCGH, beadarray, DNAcopy
 Description: Importing data from Illumina SNP experiments and performing copy number calculations and reports.
 License: GPL V2
-biocViews: DNACopyNumber, SNPsAndGeneticVariability, TwoChannel, Preprocessing, DataImport 
+biocViews: CopyNumberVariants, SNP, GeneticVariability, TwoChannel, Preprocessing, DataImport 
