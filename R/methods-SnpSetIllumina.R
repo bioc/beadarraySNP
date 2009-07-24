@@ -6,7 +6,7 @@ setMethod("initialize", "SnpSetIllumina",
                    phenoData = new("AnnotatedDataFrame"),
                    experimentData = new("MIAME"),
                    annotation = character(),
-                   scanDates = character(),
+                   protocolData = phenoData[,integer(0)],
                    call = new("matrix"),
                    callProbability = new("matrix"),
                    G = new("matrix"),
@@ -20,7 +20,7 @@ setMethod("initialize", "SnpSetIllumina",
                            experimentData = experimentData,
                            annotation = annotation,
                            featureData = featureData,
-                           scanDates = scanDates)
+                           protocolData = protocolData)
             if (!is.null(extraData)) {
               for (m in names(extraData))
                 .Object<-assayDataElementReplace(.Object, m, extraData[[m]])
