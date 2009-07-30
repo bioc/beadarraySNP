@@ -165,12 +165,12 @@ setMethod("calculateGSR", "SnpSetIllumina", function(object) {
   assayDataElementReplace(object,"GSR",sweep(assayData(object)[["callProbability"]],1,pData(featureData(object))[,"GTS"],"/"))
 })
 
-readReportfile<-function(reportfile) {
+readReportfile<-function(reportfile,sep="\t") {
   firstfield <- scan(reportfile, what = "", sep = ",", flush = TRUE,
           quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE,nlines=100)
   skip <- grep("[Data]", firstfield, fixed=TRUE)
   if (length(skip) == 0) stop("Cannot find \"[Data]\" in report file")
-  read.table(reportfile, skip=skip, header = TRUE, sep = "\t", as.is = TRUE, check.names = FALSE,colClasses="character")
+  read.table(reportfile, skip=skip, header = TRUE, sep = sep, as.is = TRUE, check.names = FALSE,colClasses="character")
 
 }
 
@@ -191,7 +191,7 @@ GetBeadStudioSampleNames<-function(reportfile) {
 }
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
-  reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, ...) {
+  reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, nochecks=FALSE, sepreport="\t", ...) {
   path<-ifelse(is.data.frame(samplesheet),".",dirname(samplesheet))
   manifests<-NULL
   if (is.data.frame(samplesheet)) {
@@ -315,21 +315,29 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
   } else {
     chrompos.fromReport<-FALSE
     if(is.null(SNPinfo)) {
-      warning(paste("OPA info file could not be (uniquely) identified for",OPAname,"Using chromosomal position from report file"))
+      if(!nochecks) {
+        warning(paste("OPA info file could not be (uniquely) identified for",OPAname,"Using chromosomal position from report file"))
+      }
       chrompos.fromReport<-TRUE
     }
-    alldata<-readReportfile(reportfile)
+    alldata<-readReportfile(reportfile,sepreport)
     # Integrity checks
-    essentialcols<-c("SNP Name","Sample ID","GC Score","GT Score","X Raw","Y Raw")
-    if (chrompos.fromReport) essentialcols<-c(essentialcols,c("Chr","Position"))
+    if (nochecks) {
+      essentialcols<-c("SNP Name","Sample ID")
+    } else {
+      essentialcols<-c("SNP Name","Sample ID","GC Score","GT Score","X Raw","Y Raw")
+      if (chrompos.fromReport) essentialcols<-c(essentialcols,c("Chr","Position"))
+    }
     foundcols<-essentialcols %in% colnames(alldata)
     if (!all(foundcols)) stop ("Columns:",paste(essentialcols[!foundcols],collapse=", ")," are missing in the report file")
-    # Test availability of Genotyping information
-    ab.report<-all(c("Allele1 - AB","Allele2 - AB") %in% colnames(alldata))
-    if (!ab.report){
-      alleliccols<-c("Allele1 - Top","Allele2 - Top")
-      if (chrompos.fromReport) alleliccols<-c(alleliccols,"ILMN Strand","SNP")
-      if (!all(alleliccols %in% colnames(alldata))) stop("Insufficient information on allelic state in the reportfile, see 'read.SnpSetIllumina' help page")
+    if (!nochecks) {
+      # Test availability of Genotyping information
+      ab.report<-all(c("Allele1 - AB","Allele2 - AB") %in% colnames(alldata))
+      if (!ab.report){
+        alleliccols<-c("Allele1 - Top","Allele2 - Top")
+        if (chrompos.fromReport) alleliccols<-c(alleliccols,"ILMN Strand","SNP")
+        if (!all(alleliccols %in% colnames(alldata))) stop("Insufficient information on allelic state in the reportfile, see 'read.SnpSetIllumina' help page")
+      }
     }
     #TODO: Could compare this to information from reportfile header
     m<-length(unique(alldata[,"SNP Name"]))
@@ -343,44 +351,48 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     tmp2<-matrix(alldata[,"Sample ID"],nrow=m,ncol=n,byrow=FALSE)
     newdimnames<-list(tmp1[,1],tmp2[1,])
     # Extract data
-    G<-matrix(as.numeric(alldata[,"X Raw"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-    R<-matrix(as.numeric(alldata[,"Y Raw"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-    GDev<-NULL
-    RDev<-NULL
-    GenScore<-matrix(as.numeric(alldata[,"GC Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-    GTS<-matrix(as.numeric(alldata[,"GT Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-    GTS<-apply(GTS,1,max,na.rm=TRUE)
-    # Combine results from single alleles
-    if (ab.report) {
-      GenCall<-paste(alldata[,"Allele1 - AB"],alldata[,"Allele2 - AB"],sep="")
-    } else {
-      # Convert SNPs with ACGT notation
-      GenCall1<-alldata[,"Allele1 - Top"]
-      GenCall2<-alldata[,"Allele2 - Top"]
-      if (chrompos.fromReport) {
-        TopBot<-alldata[,"ILMN Strand"]=="BOT"
-        Snp1<-substr(alldata[,"SNP"],2,2)
+    if (nochecks) {
+      extraColumns<-colnames(alldata)[!colnames(alldata) %in% essentialcols]
+    } else { 
+      G<-matrix(as.numeric(alldata[,"X Raw"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      R<-matrix(as.numeric(alldata[,"Y Raw"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      GDev<-NULL
+      RDev<-NULL
+      GenScore<-matrix(as.numeric(alldata[,"GC Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      GTS<-matrix(as.numeric(alldata[,"GT Score"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      GTS<-apply(GTS,1,max,na.rm=TRUE)
+      # Combine results from single alleles
+      if (ab.report) {
+        GenCall<-paste(alldata[,"Allele1 - AB"],alldata[,"Allele2 - AB"],sep="")
       } else {
-        SNPinfo<-SNPinfo[rownames(G),]
-        TopBot<-rep(SNPinfo[,"IllStrand"]=="BOT",n)
-        Snp1<-rep(substr(SNPinfo[,"snpbases"],2,2),n)
+        # Convert SNPs with ACGT notation
+        GenCall1<-alldata[,"Allele1 - Top"]
+        GenCall2<-alldata[,"Allele2 - Top"]
+        if (chrompos.fromReport) {
+          TopBot<-alldata[,"ILMN Strand"]=="BOT"
+          Snp1<-substr(alldata[,"SNP"],2,2)
+        } else {
+          SNPinfo<-SNPinfo[rownames(G),]
+          TopBot<-rep(SNPinfo[,"IllStrand"]=="BOT",n)
+          Snp1<-rep(substr(SNPinfo[,"snpbases"],2,2),n)
+        }
+        # Generate complement for SNPs on bottom strand
+        GenCall1[TopBot]<-c("A","C","G","T","-")[match(GenCall1[TopBot],c("T","G","C","A","-"))]
+        GenCall2[TopBot]<-c("A","C","G","T","-")[match(GenCall2[TopBot],c("T","G","C","A","-"))]
+        # convert ACGT to AB
+        GenCall1<-ifelse(GenCall1==Snp1,"A","B")
+        GenCall1[GenCall2=="-"]<-"-"  # preserve no call
+        #
+        GenCall2<-ifelse(GenCall2==Snp1,"A","B")
+        GenCall2[GenCall1=="-"]<-"-"
+        #
+        GenCall<-paste(GenCall1,GenCall2,sep="")
       }
-      # Generate complement for SNPs on bottom strand
-      GenCall1[TopBot]<-c("A","C","G","T","-")[match(GenCall1[TopBot],c("T","G","C","A","-"))]
-      GenCall2[TopBot]<-c("A","C","G","T","-")[match(GenCall2[TopBot],c("T","G","C","A","-"))]
-      # convert ACGT to AB
-      GenCall1<-ifelse(GenCall1==Snp1,"A","B")
-      GenCall1[GenCall2=="-"]<-"-"  # preserve no call
-      #
-      GenCall2<-ifelse(GenCall2==Snp1,"A","B")
-      GenCall2[GenCall1=="-"]<-"-"
-      #
-      GenCall<-paste(GenCall1,GenCall2,sep="")
+      GenCall<-matrix(c("A","H","B","-")[match(GenCall,c("AA","AB","BB","--"))],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+      extraColumns<-colnames(alldata)[!colnames(alldata) %in% c(essentialcols,"Allele1 - AB","Allele2 - AB")]
     }
-    GenCall<-matrix(c("A","H","B","-")[match(GenCall,c("AA","AB","BB","--"))],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
     extraData<-list()
     extraSNPinfo<-NULL
-    extraColumns<-colnames(alldata)[!colnames(alldata) %in% c(essentialcols,"Allele1 - AB","Allele2 - AB")]
     for (nam in extraColumns) {
       mat<-matrix(type.convert(alldata[,nam],as.is=TRUE),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
       # if all columns have same information -> this is an annotation column, put in SNPinfo
@@ -397,16 +409,16 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (!is.null(extraSNPinfo)) rownames(extraSNPinfo)<-newdimnames[[1]]
 
     # Select only data from samplesheet, try a few different ways
-    if (all(rownames(samples) %in% colnames(G))) {
+    if (all(rownames(samples) %in% newdimnames[[2]])) {
       selected<-rownames(samples)
-    } else if (all(samples[, "Sample_Name"] %in% colnames(G))){
+    } else if (all(samples[, "Sample_Name"] %in% newdimnames[[2]])){
       selected<-samples[, "Sample_Name"]
-    } else if (all(samples[, "ID"] %in% colnames(G))){
+    } else if (all(samples[, "ID"] %in% newdimnames[[2]])){
       selected<-samples[, "ID"]
-    } else if (any(rownames(samples) %in% colnames(G))){
-      selected<-rownames(samples)[rownames(samples) %in% colnames(G)]
-    } else if (any(samples[, "Sample_Name"] %in% colnames(G))){
-      selected<-samples[samples[, "Sample_Name"] %in% colnames(G), "Sample_Name"]
+    } else if (any(rownames(samples) %in% newdimnames[[2]])){
+      selected<-rownames(samples)[rownames(samples) %in% newdimnames[[2]]]
+    } else if (any(samples[, "Sample_Name"] %in% newdimnames[[2]])){
+      selected<-samples[samples[, "Sample_Name"] %in% newdimnames[[2]], "Sample_Name"]
     } else { # default naming of columns in beadstudio
       selected <- paste(samples[, "Sentrix_ID"], samples[,"Sentrix_Position"], sep = "_")
     }
@@ -416,45 +428,59 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
       samples<-samples[selected,]
       warning("Only a subset of the samples in the samplesheet could be found in the reportfile")
     }
-    G<-G[,selected]
-    colnames(G)<-rownames(samples)
-    R<-R[,selected]
-    colnames(R)<-rownames(samples)
-    GenScore<-GenScore[,selected]
-    colnames(GenScore)<-rownames(samples)
-    GenCall<-GenCall[,selected]
-    colnames(GenCall)<-rownames(samples)
+    if (!nochecks) {
+      G<-G[,selected]
+      colnames(G)<-rownames(samples)
+      R<-R[,selected]
+      colnames(R)<-rownames(samples)
+      GenScore<-GenScore[,selected]
+      colnames(GenScore)<-rownames(samples)
+      GenCall<-GenCall[,selected]
+      colnames(GenCall)<-rownames(samples)
+    }
     if (!is.null(extraData)) {
       extraData<-lapply(extraData, function(obj) obj[, selected])
       for (nam in names(extraData)) colnames(extraData[[nam]])<-rownames(samples)
     }
     
-    if (chrompos.fromReport) {
-      CHR<-matrix(alldata[,"Chr"],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-      MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
-      SNPinfo<-data.frame(CHR[,1,drop=FALSE],MapInfo[,1],GTS,OPA=rep(OPAname[1],length.out=nrow))
-      # assigning colnames in previous line (data.frame() ) does not work because the first column retains its column name through drop=FALSE
-      # drop=FALSE is used to retain the rownames
-      colnames(SNPinfo)<-c("CHR","MapInfo","GTS","OPA")
+    if (nochecks) {
+      if (chrompos.fromReport) {
+        SNPinfo<-data.frame(OPA=rep(OPAname[1],m),row.names=newdimnames[[1]])
+      } else {
+        SNPinfo<-SNPinfo[newdimnames[[1]],]
+      }
     } else {
-      SNPinfo<-SNPinfo[rownames(G),]
-      SNPinfo<-cbind(SNPinfo,GTS=GTS)
-    }
+      if (chrompos.fromReport) {
+        CHR<-matrix(alldata[,"Chr"],nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+        MapInfo<-matrix(as.numeric(alldata[,"Position"]),nrow=m,ncol=n,byrow=FALSE,dimnames=newdimnames)
+        SNPinfo<-data.frame(CHR[,1,drop=FALSE],MapInfo[,1],GTS,OPA=OPAname[1])
+        # assigning colnames in previous line (data.frame() ) does not work because the first column retains its column name through drop=FALSE
+        # drop=FALSE is used to retain the rownames
+        colnames(SNPinfo)<-c("CHR","MapInfo","GTS","OPA")
+      } else {
+        SNPinfo<-SNPinfo[rownames(G),]
+        SNPinfo<-cbind(SNPinfo,GTS=GTS)
+      }
+      samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
+      # Setting missing data to NA
+      md<- G<=0
+      G[md]<-NA
+      R[md]<-NA
+      GenCall[md]<-NA
+      GenScore[md]<-NA
+      if (!is.null(extraData)) {
+        extraData<-lapply(extraData, function(obj) {obj[md]<-NA;obj})
+      }
+    } 
     if (!is.null(extraSNPinfo)) SNPinfo<-cbind(SNPinfo,extraSNPinfo)
-    samples[,"validn"]<-apply(G,2,function(x) sum(!is.na(x)))
   }
-  # Setting missing data to NA
-  md<- G<=0
-  G[md]<-NA
-  R[md]<-NA
-  GenCall[md]<-NA
-  GenScore[md]<-NA
-  if (!is.null(extraData)) {
-    extraData<-lapply(extraData, function(obj) {obj[md]<-NA;obj})
-  }
-  
-  new("SnpSetIllumina",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, call=GenCall, callProbability=GenScore, G=G, R=R,
+  if (nochecks) {
+    new("MultiSet",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, 
+             featureData=new("AnnotatedDataFrame",SNPinfo,data.frame(labelDescription=colnames(SNPinfo),row.names=colnames(SNPinfo))),assayData=extraData)
+  } else {
+    new("SnpSetIllumina",phenoData=new("AnnotatedDataFrame",samples,data.frame(labelDescription=colnames(samples),row.names=colnames(samples))), annotation=OPAname, call=GenCall, callProbability=GenScore, G=G, R=R,
              featureData=new("AnnotatedDataFrame",SNPinfo,data.frame(labelDescription=colnames(SNPinfo),row.names=colnames(SNPinfo))),extraData=extraData,storage.mode="list")
+  }
 }
 
 getExperiments <- function(file="experiments.txt",path=NULL)

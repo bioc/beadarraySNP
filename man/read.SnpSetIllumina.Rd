@@ -11,7 +11,8 @@
 
 \usage{
    read.SnpSetIllumina(samplesheet, manifestpath=NULL, reportpath=NULL,
-     rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, ...)
+     rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, 
+     nochecks=FALSE, sepreport="\t", ...)
 }
 \arguments{
    \item{samplesheet}{a data.frame or filename, contains the sample sheet}
@@ -28,6 +29,8 @@
      \code{featureData} slot}
    \item{readTIF}{logical, uses \code{beadarray} package and raw TIF files to 
      read data}
+   \item{nochecks}{logical, limited validity checks on beadstudio report files. See details}
+   \item{sepreport}{character, field separator character for beadstudio report files}
    \item{\dots}{arguments are forwarded to \code{\link[beadarray:readIllumina]{readIllumina}} 
      and can be used to perform bead-level normalization} 
 }
@@ -82,6 +85,9 @@
   in the \code{G} matrix. Other columns in the report file are added as matrices 
   in the \code{assayData} slot, or columns in the \code{featureData} slot if 
   values are identical for all samples in the reportfile.
+  When \code{nochecks} is \code{TRUE} then only the \sQuote{\code{SNP Name}} and
+  \sQuote{\code{Sample ID}} columns are required. The resulting object is now of 
+  class \code{\link[Biobase:MultiSet-class]{MultiSet}}
   
   \emph{Sample sheets}
   
@@ -97,7 +103,8 @@
   arrays, because Illumina does not supply Manifest files for these arrays.
 }
 \value{
-  This function returns an \code{SnpSetIllumina} object.
+  This function returns an \code{SnpSetIllumina} object, or a \code{MultiSet} object 
+  when \code{nochecks} is \code{TRUE}.
 }
 \author{Jan Oosting}
 

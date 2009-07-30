@@ -26,6 +26,9 @@ samples)}, but are usually created by \code{\link{calculateQCarray}}.
     \item{\code{intensityMed}:}{numeric matrix, Median of intensity of samples }
     \item{\code{greenMed}:}{numeric matrix, Median of green values }
     \item{\code{redMed}:}{numeric matrix, Median of red values }
+    \item{\code{callrate}:}{numeric matrix, callrate of genotyping }
+    \item{\code{hetPerc}:}{numeric matrix, Percentage of heterozygotes }
+    \item{\code{ptpdiff}:}{numeric matrix, point-to-point difference, local estimate of variability }
     \item{\code{validn}:}{numeric matrix, Number of valid probe values in samples }
     \item{\code{annotation}:}{character matrix, Annotation of samples }
     \item{\code{samples}:}{character matrix, Sample IDs }
