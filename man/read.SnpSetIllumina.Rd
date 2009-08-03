@@ -47,6 +47,8 @@
   this is the case for processed experiments. The contents of the sample sheet 
   are put into the \code{phenoData} slot. 
   
+  Zero values in the raw data signals are set to NA
+  
 	Ideally the OPA manifest file containing SNP annotation should be available, 
 	these files are provided by Illumina. Columns \sQuote{\code{IllCode}}, 
   \sQuote{\code{CHR}}, and \sQuote{\code{MapInfo}} are put into the 

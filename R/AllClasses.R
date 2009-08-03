@@ -1,6 +1,12 @@
 setClass("SnpSetIllumina", 
    contains = "eSet"
 )
+setClass("SnpSetSegments",
+  representation(
+    cn.segments = "data.frame"
+  ),
+  contains = "SnpSetIllumina"
+)
 
 setClass("QCIllumina",
    representation(

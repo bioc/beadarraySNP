@@ -4,7 +4,7 @@ importFrom(quantsmooth, characterCHR, getChangedRegions,
            lengthChromosome, numericCHR, paintCytobands, plotSmoothed,
            prepareGenomePlot, quantsmooth, scaleto)
 
-exportClasses(SnpSetIllumina, QCIllumina)
+exportClasses(SnpSetIllumina, SnpSetSegments, QCIllumina)
 
 exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featureNames, 
              pData, phenoData, sampleNames, samples, featureData, sortGenomic,
@@ -15,7 +15,7 @@ exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featur
              dim, assayData, reporterNames, initialize,
              "arrayType<-", "arrayID<-", arrayType, arrayID,
              plotQC, reportSamplePanelQC,
-             calculateGSR)
+             calculateGSR, cn.segments, "cn.segments<-")
 
 export("read.SnpSetIllumina", backgroundEstimate, backgroundCorrect.SNP,
        normalizeBetweenAlleles.SNP, normalizeBetweenSubsamples.SNP, 

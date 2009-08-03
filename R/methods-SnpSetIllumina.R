@@ -31,19 +31,13 @@ setMethod("initialize", "SnpSetIllumina",
           })
 
 setValidity("SnpSetIllumina", function(object) {
-  assayDataValidMembers(assayData(object), c("call", "callProbability"))
+  assayDataValidMembers(assayData(object), c("call", "callProbability", "G", "R"))
 })
 
 setMethod("exprs", c("SnpSetIllumina"), function(object) assayDataElement(object, "call"))
 
 setReplaceMethod("exprs", c("SnpSetIllumina", "matrix"), function(object, value) {
   assayDataElementReplace(object, "call", value)
-})
-
-setMethod("fData", c("SnpSetIllumina"), function(object) pData(featureData(object)))
-
-setReplaceMethod("fData", c("SnpSetIllumina", "data.frame"), function(object, value) {
-  pData(featureData(object))<- value
 })
 
 setMethod("sortGenomic", c("SnpSetIllumina"), function(object) 

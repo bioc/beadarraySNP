@@ -198,8 +198,9 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
     loh.offset<- -0.25
     loh.range<- 0.10
     loh.width<- 1.5
-    q.col<-ifelse(assayData(object)$GSR[het.nrm,sample]<0.8,"mediumblue","green")
-    col<-ifelse(assayData(object)$call[het.nrm,sample]=="H",q.col,"red")
+    col<-rep("#0000CCFF",sum(het.nrm))
+    col[assayData(object)$GSR[het.nrm,sample]>=0.8]<-"#00FF00FF"
+    col[assayData(object)$call[het.nrm,sample]!="H"]<-"#FF0000FF"
     segments(idx/selected.n,y.base+loh.offset,idx/selected.n,y.base+loh.offset+loh.range,lwd=loh.width,col=col)
     #
     y.base<-y.base-3
