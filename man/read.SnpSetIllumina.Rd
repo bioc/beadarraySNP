@@ -95,7 +95,9 @@
   
   To help generate a sample sheet for BeadStudio data a \code{Sample_Map.txt} 
   file can be converted to a sample sheet with the 
-  \code{\link{Sample_Map2Samplesheet}} function.
+  \code{\link{Sample_Map2Samplesheet}} function. For Beadstudio reportfiles it is
+  also possible to set samplesheet=\code{NULL}. In this case the \code{phenoData}
+  slot will be fabricated from the sample names in the reportfile.
   
   \emph{Manifest/OPA/annotation files}
   

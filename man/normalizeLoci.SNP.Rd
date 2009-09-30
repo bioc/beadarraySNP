@@ -9,14 +9,16 @@
 }
 
 \usage{
-   normalizeLoci.SNP(object, method=c("normals","paired"), NorTum="NorTum",
+   normalizeLoci.SNP(object, method=c("normals","paired","alleles"), NorTum="NorTum",
                      Gender="Gender", Subject="Subject", normalizeTo=2, trig=FALSE)
 }
 \arguments{
    \item{object}{\code{object} class SnpSetIllumina}
    \item{method}{character. If \code{"normals"} then all normal samples in the 
      dataset are used as the invariant set. If \code{"paired"} then affected 
-     samples are normalized to their paired normal samples}
+     samples are normalized to their paired normal samples. \code{"alleles"} fits
+     a linear model between the B-allele ratio and the signal intensity and 
+     normalizes for that}
    \item{NorTum}{logical or character vector or name of column in \code{pData} slot. 
      depicts the normal, unaffected samples in the dataset. In a character vector
      these should have the value \code{"N"}}

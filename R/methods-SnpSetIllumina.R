@@ -186,49 +186,55 @@ GetBeadStudioSampleNames<-function(reportfile) {
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
   reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, nochecks=FALSE, sepreport="\t", ...) {
-  path<-ifelse(is.data.frame(samplesheet),".",dirname(samplesheet))
-  manifests<-NULL
-  if (is.data.frame(samplesheet)) {
-    samples<-samplesheet
-    for (i in 1:length(samples)) samples[[i]]<-as.character(samples[[i]])
-    beadstudio<-FALSE
-  } else {
-    firstfield <- scan(samplesheet, what = "", sep = ",", flush = TRUE,
-            quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
-    # test if beadstudio sample sheet
-    manif <- grep("[Manifests]", firstfield, fixed=TRUE)
-    skip <- grep("[Data]", firstfield, fixed=TRUE)
-    if (length(skip) == 0) stop("Cannot find \"[Data]\" in samplesheet file")
-    if (length(manif)>0) manifests<-read.table(samplesheet, skip=manif, header = FALSE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character",row.names=1,nrows=skip-manif-1)[,1,drop=FALSE]
-    samples<-read.table(samplesheet, skip=skip, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character")
-  }
-  if (!is.null(manifests) && !is.null(reportfile)) {
-    # this only works for beadstudio final report files
-    rownames(samples)<-samples[,"Sample_ID"]
-    req_cols<-c(paste("SentrixBarcode",rownames(manifests),sep="_"),paste("SentrixPosition",rownames(manifests),sep="_"))
-    smpcol<-!(req_cols %in% colnames(samples))
-    if (any(smpcol))
-      stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
-    OPAname<-as.character(manifests[,1])
-  } else {
-    req_cols<-c("Sample_Name","Sentrix_Position","Sample_Plate","Pool_ID","Sentrix_ID" )
-    smpcol<-!(req_cols %in% colnames(samples))
-    if (any(smpcol))
-      stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
-    if (nchar(samples[1,"Sentrix_Position"])==9) # Sentrix arrays on 96 well sample plate
-      samples<-cbind(samples,validn=0,Row=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),3,4)),Col=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),8,9)))
-    if (length(unique(samples[,"Sample_Plate"]))>1 | length(unique(samples[,"Pool_ID"]))>1 | length(unique(samples[,"Sentrix_ID"]))>1) stop("Either Sample_Plate or Pool_ID or Sentrix_ID values in samplesheet are not same for all samples")
-    OPAname<-as.character(samples[1,"Pool_ID"])
-    rownames(samples)<-samples[,"Sample_Name"]
-  }
-  #
+  path<-ifelse(is.data.frame(samplesheet)|is.null(samplesheet),".",dirname(samplesheet))
   if (is.null(manifestpath)) manifestpath<-path
   if (is.null(reportpath)) reportpath<-path
   if (is.null(rawdatapath)) rawdatapath<-path
-  # SNPInfo
-	SNPinfo<-IlluminaGetOPAinfo(OPAname,manifestpath,brief=briefOPAinfo)
+  #
+  manifests<-NULL
+  if (!is.null(samplesheet)) {
+    if (is.data.frame(samplesheet)) {
+      samples<-samplesheet
+      for (i in 1:length(samples)) samples[[i]]<-as.character(samples[[i]])
+      beadstudio<-FALSE
+    } else {
+      firstfield <- scan(samplesheet, what = "", sep = ",", flush = TRUE,
+              quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
+      # test if beadstudio sample sheet
+      manif <- grep("[Manifests]", firstfield, fixed=TRUE)
+      skip <- grep("[Data]", firstfield, fixed=TRUE)
+      if (length(skip) == 0) stop("Cannot find \"[Data]\" in samplesheet file")
+      if (length(manif)>0) manifests<-read.table(samplesheet, skip=manif, header = FALSE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character",row.names=1,nrows=skip-manif-1)[,1,drop=FALSE]
+      samples<-read.table(samplesheet, skip=skip, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE,colClasses="character")
+    }
+    if (!is.null(manifests) && !is.null(reportfile)) {
+      # this only works for beadstudio final report files
+      rownames(samples)<-samples[,"Sample_ID"]
+      req_cols<-c(paste("SentrixBarcode",rownames(manifests),sep="_"),paste("SentrixPosition",rownames(manifests),sep="_"))
+      smpcol<-!(req_cols %in% colnames(samples))
+      if (any(smpcol))
+        stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
+      OPAname<-as.character(manifests[,1])
+    } else {
+      req_cols<-c("Sample_Name","Sentrix_Position","Sample_Plate","Pool_ID","Sentrix_ID" )
+      smpcol<-!(req_cols %in% colnames(samples))
+      if (any(smpcol))
+        stop("Sample sheet error, column(s) ",paste(req_cols[smpcol],collapse=", ")," are not available")
+      if (nchar(samples[1,"Sentrix_Position"])==9) # Sentrix arrays on 96 well sample plate
+        samples<-cbind(samples,validn=0,Row=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),3,4)),Col=as.numeric(substr(as.character(samples[,"Sentrix_Position"]),8,9)))
+      if (length(unique(samples[,"Sample_Plate"]))>1 | length(unique(samples[,"Pool_ID"]))>1 | length(unique(samples[,"Sentrix_ID"]))>1) stop("Either Sample_Plate or Pool_ID or Sentrix_ID values in samplesheet are not same for all samples")
+      OPAname<-as.character(samples[1,"Pool_ID"])
+      rownames(samples)<-samples[,"Sample_Name"]
+    }
+    # SNPInfo
+   	SNPinfo<-IlluminaGetOPAinfo(OPAname,manifestpath,brief=briefOPAinfo)
+ 	} else {
+ 	  SNPinfo<-NULL
+ 	  OPAname<-"report file"
+  }
 
 	if (is.null(reportfile)) {
+    if(is.null(samplesheet)) stop("A samplesheet should be defined for GenCall or raw data")
     if(is.null(SNPinfo)) stop(paste("OPA info file could not be (uniquely) identified for",OPAname))
     # Import data from GenCall software
     # GenCall, GenScore
@@ -403,40 +409,44 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (!is.null(extraSNPinfo)) rownames(extraSNPinfo)<-newdimnames[[1]]
 
     # Select only data from samplesheet, try a few different ways
-    if (all(rownames(samples) %in% newdimnames[[2]])) {
-      selected<-rownames(samples)
-    } else if (all(samples[, "Sample_Name"] %in% newdimnames[[2]])){
-      selected<-samples[, "Sample_Name"]
-    } else if (all(samples[, "ID"] %in% newdimnames[[2]])){
-      selected<-samples[, "ID"]
-    } else if (any(rownames(samples) %in% newdimnames[[2]])){
-      selected<-rownames(samples)[rownames(samples) %in% newdimnames[[2]]]
-    } else if (any(samples[, "Sample_Name"] %in% newdimnames[[2]])){
-      selected<-samples[samples[, "Sample_Name"] %in% newdimnames[[2]], "Sample_Name"]
-    } else { # default naming of columns in beadstudio
-      selected <- paste(samples[, "Sentrix_ID"], samples[,"Sentrix_Position"], sep = "_")
+    if (is.null(samplesheet)) {
+      samples<-data.frame(Sample_Name=newdimnames[[2]],Sentrix_Position=paste("Position_",1:n,sep=""),
+                          Sample_Plate="Plate",Pool_ID="Pool",Sentrix_ID="Sentrix",row.names=newdimnames[[2]],stringsAsFactors=FALSE)      
+    }else {
+      if (all(rownames(samples) %in% newdimnames[[2]])) {
+        selected<-rownames(samples)
+      } else if (all(samples$Sample_Name %in% newdimnames[[2]]) & !is.null(samples$Sample_Name)){
+        selected<-samples$Sample_Name
+      } else if (all(samples$ID %in% newdimnames[[2]])& !is.null(samples$ID)){
+        selected<-samples$ID
+      } else if (any(rownames(samples) %in% newdimnames[[2]])){
+        selected<-rownames(samples)[rownames(samples) %in% newdimnames[[2]]]
+      } else if (any(samples$Sample_Name %in% newdimnames[[2]]) & !is.null(samples$Sample_Name)){
+        selected<-samples$Sample_Name[samples$Sample_Name %in% newdimnames[[2]]]
+      } else { # default naming of columns in beadstudio
+        selected <- paste(samples[, "Sentrix_ID"], samples[,"Sentrix_Position"], sep = "_")
+      }
+      #
+      if (length(selected)==0) stop("None of the samples in the samplesheet match with the samples in the reportfile")
+      if (length(selected)<nrow(samples)) {
+        samples<-samples[selected,]
+        warning("Only a subset of the samples in the samplesheet could be found in the reportfile")
+      }
+      if (!nochecks) {
+        G<-G[,selected]
+        colnames(G)<-rownames(samples)
+        R<-R[,selected]
+        colnames(R)<-rownames(samples)
+        GenScore<-GenScore[,selected]
+        colnames(GenScore)<-rownames(samples)
+        GenCall<-GenCall[,selected]
+        colnames(GenCall)<-rownames(samples)
+      }
+      if (!is.null(extraData)) {
+        extraData<-lapply(extraData, function(obj) obj[, selected])
+        for (nam in names(extraData)) colnames(extraData[[nam]])<-rownames(samples)
+      }
     }
-    #
-    if (length(selected)==0) stop("None of the samples in the samplesheet match with the samples in the reportfile")
-    if (length(selected)<nrow(samples)) {
-      samples<-samples[selected,]
-      warning("Only a subset of the samples in the samplesheet could be found in the reportfile")
-    }
-    if (!nochecks) {
-      G<-G[,selected]
-      colnames(G)<-rownames(samples)
-      R<-R[,selected]
-      colnames(R)<-rownames(samples)
-      GenScore<-GenScore[,selected]
-      colnames(GenScore)<-rownames(samples)
-      GenCall<-GenCall[,selected]
-      colnames(GenCall)<-rownames(samples)
-    }
-    if (!is.null(extraData)) {
-      extraData<-lapply(extraData, function(obj) obj[, selected])
-      for (nam in names(extraData)) colnames(extraData[[nam]])<-rownames(samples)
-    }
-    
     if (nochecks) {
       if (chrompos.fromReport) {
         SNPinfo<-data.frame(OPA=rep(OPAname[1],m),row.names=newdimnames[[1]])
@@ -498,26 +508,28 @@ IlluminaGetOPAinfo<-function(OPAnames,OPAinfoPath,brief=TRUE) {
   # IllCode : numeric within linkage panel to connect to snpid
   # Combine multiple OPA files
   illOPA<-NULL
-  for (OPAname in OPAnames) {
-  	OPAfile<-list.files(OPAinfoPath,pattern=paste(OPAname,".*\\.opa$",sep=""),full.names=TRUE)
-  	if (length(OPAfile) == 1) {
-    	# import it to the database
-      firstfield <- scan(OPAfile, what = "", sep = ",", flush = TRUE, quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
-      skip <- grep("Ilmn ID", firstfield, fixed=TRUE)
-      if (length(skip) == 0) stop("Cannot find \"Ilmn ID\" in OPA info file")
-    	enddata<- grep("[Gentrain Request]", firstfield, fixed=TRUE)
-      if (length(enddata) == 0) stop("Cannot find \"[Gentrain Request]\" in OPA info file")
-    	#OPAmetaInfo<-read.table(OPAfile,sep=",",nrows=skip[1]-1,fill=TRUE,as.is=TRUE)
-    	#OPAtestName<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Name",2]
-    	#OPAversion<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Version",2]
-    	#OPAdate<-OPAmetaInfo[OPAmetaInfo[,1]=="Date Manufactured",2]
-    	OPAinfo<-read.table(OPAfile, skip=skip[1]-1, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE, nrows=enddata[1]-skip[1]-1)
-      colnames(OPAinfo)<-c("Illname","snpid","oligo1","oligo2","oligo3","IllCode","IllOligo","IllStrand","snpbases","CHR","Ploidy","Species","MapInfo","TopGenomicSeq","CustomerStrand")
-      rownames(OPAinfo)<-OPAinfo[,"snpid"]
-      OPA<-rep(OPAname,nrow(OPAinfo))
-      #TODO check existing snp_ids in illOPA
-      if (brief) illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo[,c("snpid","IllCode","CHR","MapInfo","IllStrand","snpbases")]))
-      else illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo))
+  if (!is.null(OPAnames)) {
+    for (OPAname in OPAnames) {
+    	OPAfile<-list.files(OPAinfoPath,pattern=paste(OPAname,".*\\.opa$",sep=""),full.names=TRUE)
+    	if (length(OPAfile) == 1) {
+      	# import it to the database
+        firstfield <- scan(OPAfile, what = "", sep = ",", flush = TRUE, quiet = TRUE, blank.lines.skip = FALSE, multi.line = FALSE)
+        skip <- grep("Ilmn ID", firstfield, fixed=TRUE)
+        if (length(skip) == 0) stop("Cannot find \"Ilmn ID\" in OPA info file")
+      	enddata<- grep("[Gentrain Request]", firstfield, fixed=TRUE)
+        if (length(enddata) == 0) stop("Cannot find \"[Gentrain Request]\" in OPA info file")
+      	#OPAmetaInfo<-read.table(OPAfile,sep=",",nrows=skip[1]-1,fill=TRUE,as.is=TRUE)
+      	#OPAtestName<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Name",2]
+      	#OPAversion<-OPAmetaInfo[OPAmetaInfo[,1]=="Test Version",2]
+      	#OPAdate<-OPAmetaInfo[OPAmetaInfo[,1]=="Date Manufactured",2]
+      	OPAinfo<-read.table(OPAfile, skip=skip[1]-1, header = TRUE, sep = ",", as.is = TRUE, check.names = FALSE, nrows=enddata[1]-skip[1]-1)
+        colnames(OPAinfo)<-c("Illname","snpid","oligo1","oligo2","oligo3","IllCode","IllOligo","IllStrand","snpbases","CHR","Ploidy","Species","MapInfo","TopGenomicSeq","CustomerStrand")
+        rownames(OPAinfo)<-OPAinfo[,"snpid"]
+        OPA<-rep(OPAname,nrow(OPAinfo))
+        #TODO check existing snp_ids in illOPA
+        if (brief) illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo[,c("snpid","IllCode","CHR","MapInfo","IllStrand","snpbases")]))
+        else illOPA<-rbind(illOPA,cbind(OPA=I(OPA),OPAinfo))
+      }
     }
   }
   return(illOPA)
