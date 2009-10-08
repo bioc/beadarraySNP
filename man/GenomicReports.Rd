@@ -63,7 +63,7 @@ reportGenomeIntensityPlot(snpdata, normalizedTo=NULL, subsample=NULL, smoothing=
 }
 \author{Jan Oosting}
 \seealso{
-  \code{\link[quantsmooth]{quantsmooth}},\code{\link[quantsmooth]{prepareGenomeplot}},
+  \code{\link[quantsmooth]{quantsmooth}},\code{\link[quantsmooth]{prepareGenomePlot}},
   \code{\link{pdfChromosomesSmoothCopyNumber}}, \code{\link{pdfSamplesSmoothCopyNumber}}
 }
 \examples{

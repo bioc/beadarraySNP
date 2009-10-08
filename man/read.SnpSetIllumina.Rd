@@ -89,7 +89,7 @@
   values are identical for all samples in the reportfile.
   When \code{nochecks} is \code{TRUE} then only the \sQuote{\code{SNP Name}} and
   \sQuote{\code{Sample ID}} columns are required. The resulting object is now of 
-  class \code{\link[Biobase:MultiSet-class]{MultiSet}}
+  class \code{\link[Biobase:class.MultiSe]{MultiSet}}
   
   \emph{Sample sheets}
   

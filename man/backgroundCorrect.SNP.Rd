@@ -29,7 +29,8 @@
 \author{Jan Oosting, based on \code{limma} package by G. Smyth}
 
 \seealso{
-   \code{\link{SnpSetIllumina-class}}, \code{\link[limma]{backgroundCorrect}},
+   \code{\link{SnpSetIllumina-class}},
+   \code{\link[limma:backgroundcorrect]{backgroundCorrect}}, 
    \code{\link{backgroundEstimate}}, \code{\link{normalizeBetweenAlleles.SNP}},
    \code{\link{normalizeWithinArrays.SNP}}
 }
