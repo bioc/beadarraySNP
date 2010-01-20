@@ -321,7 +321,7 @@ normalizeWithinArrays.SNP<-function(object, callscore=0.5, normprob=0.5, quantil
   res
 }
 
-normalizeLoci.SNP <- function(
+my.normalizeLoci.SNP <- function(
   object,
   method=c("normals","paired","alleles"),
   NorTum="NorTum",
@@ -373,17 +373,17 @@ normalizeLoci.SNP <- function(
     # TODO: use Subject to make Tumor/Normal pairs
   }, alleles = {
     baf<-assayData(object)$G/intensity
-    R.factor<-NULL
-    G.factor<-NULL
+    intercept<-NULL
+    slope<-NULL
     for (i in 1:nrow(intensity)) {
       lmc<-coef(lm(intensity ~ baf,data=data.frame(baf=baf[i,NorTum],intensity=intensity[i,NorTum])))
-      R.factor[i]<-lmc[1]
-      G.factor[i]<-lmc[1]+lmc[2]
+      intercept[i]<-lmc[1]
+      slope[i]<-lmc[2]
     }
-    R<-sweep(assayData(object)$R,1,R.factor,FUN="/")*normalizeTo
-    G<-sweep(assayData(object)$G,1,G.factor,FUN="/")*normalizeTo
+    intensity<-sweep(intensity,1,intercept-normalizeTo,FUN="-")-sweep(baf,1,slope,FUN="*")
+    G<-baf*intensity
+    R<-(1-baf)*intensity
   })
-
   res<-object
   assayData(res)$R<-R
   assayData(res)$G<-G
