@@ -321,7 +321,7 @@ normalizeWithinArrays.SNP<-function(object, callscore=0.5, normprob=0.5, quantil
   res
 }
 
-my.normalizeLoci.SNP <- function(
+normalizeLoci.SNP <- function(
   object,
   method=c("normals","paired","alleles"),
   NorTum="NorTum",
