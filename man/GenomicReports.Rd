@@ -40,11 +40,11 @@ reportGenomeIntensityPlot(snpdata, normalizedTo=NULL, subsample=NULL, smoothing=
   \item{downcolor}{color.}
   \item{lohcolor}{color.}
   \item{hetcolor}{color.}
-  \item{lohwidth}{}
+  \item{lohwidth}{numerical, relative width of the LOH part of the sample}
   \item{segment}{integer.}
   \item{orientation}{["V","H"], vertical or horizontal orientation of plot.}
-  \item{proportion}{}
-  \item{subsample}{}
+  \item{proportion}{numerical, proportion of the plot to use for idiogram annotation}
+  \item{subsample}{character, or factor of length of features}
   \item{smoothing}{Type of smoothing per chromosome.}
   \item{dot.col}{color.}
   \item{smooth.col}{color.}

@@ -19,7 +19,7 @@ arrayID(object)<- value
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{Object, possibly derived from class \code{\link{QCIllumina-class}}.}
-  \item{value}{}
+  \item{value}{character.}
 }
 \details{
 Currently the following types of arrays are supported

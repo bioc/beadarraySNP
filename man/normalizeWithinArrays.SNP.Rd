@@ -28,7 +28,7 @@
      eligible as the invariant set, else only the heterozygous SNPs.}
    \item{subsample}{factor or column name in \code{featureData} slot, the levels 
     of the factor are treated separately.}
-   \item{Q.scores}{}
+   \item{Q.scores}{name of assayData() element, or numeric matrix of appropriate size. Quality scores to select high quality SNPs}
 }
 \details{
   The function uses high quality heterozygous SNPs as an invariant set with the

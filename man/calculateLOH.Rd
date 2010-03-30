@@ -21,7 +21,7 @@ calculateLair(object, grouping = NULL, NorTum = "NorTum", min.intensity = NULL,
   \item{\dots}{extra arguments for \code{link{heterozygousSNPs}}}
 }
 \details{
-  ~~ If necessary, more details than the description above ~~
+  The heterozygous SNPs of the normal sample are inspected for changes. SNPs where the genotype of the test sample are homozygous are set to \code{TRUE}
 }
 \value{
   For calculateLOH a SnpSetIllumina object with \code{loh} and \code{nor.gt} matrices in assayData. 
