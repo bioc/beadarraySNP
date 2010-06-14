@@ -185,7 +185,8 @@ GetBeadStudioSampleNames<-function(reportfile) {
 }
 
 read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, rawdatapath=NULL,
-  reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, nochecks=FALSE, sepreport="\t", ...) {
+  reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, nochecks=FALSE, sepreport="\t", 
+  essentialOnly=FALSE, ...) {
   path<-ifelse(is.data.frame(samplesheet)|is.null(samplesheet),".",dirname(samplesheet))
   if (is.null(manifestpath)) manifestpath<-path
   if (is.null(reportpath)) reportpath<-path
@@ -333,12 +334,16 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (!nochecks) {
       # Test availability of Genotyping information
       ab.report<-all(c("Allele1 - AB","Allele2 - AB") %in% colnames(alldata))
-      if (!ab.report){
+      if (ab.report){
+        essentialcols<-c(essentialcols,c("Allele1 - AB","Allele2 - AB"))
+      } else {
         alleliccols<-c("Allele1 - Top","Allele2 - Top")
         if (chrompos.fromReport) alleliccols<-c(alleliccols,"ILMN Strand","SNP")
         if (!all(alleliccols %in% colnames(alldata))) stop("Insufficient information on allelic state in the reportfile, see 'read.SnpSetIllumina' help page")
+        essentialcols<-c(essentialcols,alleliccols)
       }
     }
+    if(essentialOnly) alldata<-alldata[,essentialcols]
     #TODO: Could compare this to information from reportfile header
     m<-length(unique(alldata[,"SNP Name"]))
     datasamples<-unique(alldata[,"Sample ID"])
