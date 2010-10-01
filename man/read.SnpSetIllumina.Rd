@@ -12,7 +12,7 @@
 \usage{
    read.SnpSetIllumina(samplesheet, manifestpath=NULL, reportpath=NULL,
      rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, 
-     nochecks=FALSE, sepreport="\t", ...)
+     nochecks=FALSE, sepreport="\t", essentialOnly, ...)
 }
 \arguments{
    \item{samplesheet}{a data.frame or filename, contains the sample sheet}
@@ -32,7 +32,9 @@
    \item{nochecks}{logical, limited validity checks on beadstudio report files. See details}
    \item{sepreport}{character, field separator character for beadstudio report files}
    \item{\dots}{arguments are forwarded to \code{\link[beadarray:readIllumina]{readIllumina}} 
-     and can be used to perform bead-level normalization} 
+     and can be used to perform bead-level normalization}
+   \item{essentialOnly}{logical, if \code{TRUE} then only essential
+   columns are included}
 }
 
 \details{
