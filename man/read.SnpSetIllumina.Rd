@@ -2,7 +2,7 @@
 \alias{read.SnpSetIllumina}
 \concept{SnpSetIllumina}
 
-\title{Read Experimental Data and into an 'SnpSetIllumina' Object}
+\title{Read Experimental Data, Featuredata and Phenodata into an 'SnpSetIllumina' Object}
 
 \description{
    A SnpSetIllumina object is created from the textfiles created by the Illumina 
@@ -12,7 +12,7 @@
 \usage{
    read.SnpSetIllumina(samplesheet, manifestpath=NULL, reportpath=NULL,
      rawdatapath=NULL, reportfile=NULL, briefOPAinfo=TRUE, readTIF=FALSE, 
-     nochecks=FALSE, sepreport="\t", essentialOnly, ...)
+     nochecks=FALSE, sepreport="\t", essentialOnly=FALSE, ...)
 }
 \arguments{
    \item{samplesheet}{a data.frame or filename, contains the sample sheet}
@@ -31,10 +31,10 @@
      read data}
    \item{nochecks}{logical, limited validity checks on beadstudio report files. See details}
    \item{sepreport}{character, field separator character for beadstudio report files}
+   \item{essentialOnly}{logical, if \code{TRUE} then only the essential
+     columns from a reportfile are included into the result. See details}
    \item{\dots}{arguments are forwarded to \code{\link[beadarray:readIllumina]{readIllumina}} 
      and can be used to perform bead-level normalization}
-   \item{essentialOnly}{logical, if \code{TRUE} then only essential
-   columns are included}
 }
 
 \details{
