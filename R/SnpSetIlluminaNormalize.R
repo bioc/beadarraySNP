@@ -69,13 +69,14 @@ backgroundEstimate<-function(object, method=c("minimum","mode","intmin","anglemo
   ##            intmin : determine minimum dependent on other allele
   ##            anglemode : determine mode of angle and set bg accordingly ( needs polar coordinates in snpdata)
   intminBG<-function(allele1,allele2) {
-    binsize<-max(allele2,na.rm=TRUE)/bincount
+    binsize<-max(allele2)/bincount
+    
     x<-NULL
     y<-NULL
     ## determine the minima along the intensities of the other allele
     for (bin in 1:bincount) {
       x[bin]<-(bin-0.5) * binsize
-      y[bin]<-min(allele1[allele2>(bin -1)*binsize & allele2< bin*binsize])
+      y[bin]<-min(allele1[allele2>(bin -1)*binsize & allele2< bin*binsize],na.rm=TRUE)
     }
     y[y == Inf]<-NA
     # fit through minimum as origin
@@ -375,10 +376,23 @@ normalizeLoci.SNP <- function(
     baf<-assayData(object)$G/intensity
     intercept<-NULL
     slope<-NULL
+    if ("CHR" %in% varLabels(featureData(object)) & !all(Gender) & any(Gender)) {
+      # Handle Sexchromosomes if there is a mix of females and males
+      numChrom<-numericCHR(pData(featureData(object))[,"CHR"])
+    } else numChrom=rep(1,nrow(baf))
+
     for (i in 1:nrow(intensity)) {
-      lmc<-coef(lm(intensity ~ baf,data=data.frame(baf=baf[i,NorTum],intensity=intensity[i,NorTum])))
-      intercept[i]<-lmc[1]
-      slope[i]<-lmc[2]
+      selection<-NorTum
+      if (numChrom[i]==98) selection<-NorTum & Gender
+      if (numChrom[i]==99) selection<-NorTum & !Gender
+      if (sum(!is.na(intensity[i,selection]))<2) {
+        intercept[i]<-NA
+        slope[i]<-NA
+      } else {
+        lmc<-coef(lm(intensity ~ baf,data=data.frame(baf=baf[i,selection],intensity=intensity[i,selection])))
+        intercept[i]<-lmc[1]
+        slope[i]<-lmc[2]
+      }
     }
     intensity<-sweep(intensity,1,intercept-normalizeTo,FUN="-")-sweep(baf,1,slope,FUN="*")
     G<-baf*intensity

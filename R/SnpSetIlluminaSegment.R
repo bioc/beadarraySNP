@@ -42,7 +42,14 @@ segmentate.old<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), norm
   res
 }
 
-segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normalizedTo=2, doLog=TRUE, doMerge= FALSE, useLair=FALSE, subsample="OPA") {
+segmentate<-function(object, 
+                     method=c("DNACopy","HMM","BioHMM","GLAD"), 
+                     normalizedTo=2, 
+                     doLog=TRUE, 
+                     doMerge= FALSE, 
+                     useLair=FALSE, 
+                     subsample="OPA",
+                     alpha=0.01) {
   method<-match.arg(method)
   if (method=="DNACopy") {
     object<-sortGenomic(object)
@@ -62,7 +69,7 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
     chrom<-numericCHR(fData(object)$CHR)
     maploc<-fData(object)$MapInfo
     cna.intensity<-smooth.CNA(CNA(observed,chrom,maploc,sampleid=sampleNames(object)))
-    seg.intensity<-DNAcopy::segment(cna.intensity)
+    seg.intensity<-DNAcopy::segment(cna.intensity,alpha=alpha)
     assays<-unique(seg.intensity$output$ID)
     seg.intensity<-split(seg.intensity$output,seg.intensity$output$ID)
     for (assay in 1:length(assays)) {
@@ -77,7 +84,7 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
         selection<- (! states[,assay] %in% all.na[all.na[,2],1])
         # 
         cna.lair<-CNA(lair[selection,assay],states[selection,assay],maploc[selection],sampleid=paste(sampleNames(object)[assay],"lair"))
-        seg.lair<-DNAcopy::segment(cna.lair)                                   
+        seg.lair<-DNAcopy::segment(cna.lair,alpha=alpha)                                   
         seg.lair<-seg.lair$output
         if (any(all.na[,2])) { # add the excluded segments again
           exc.seg<-seg.smp[all.na[,2],]                                   
@@ -104,10 +111,10 @@ segmentate<-function(object, method=c("DNACopy","HMM","BioHMM","GLAD"), normaliz
         seg.lair$loc.end[nrow(seg.lair)]<-seg.smp$loc.end[prevstate]
         #
         for(state in 1:nrow(seg.lair)) {
-          lair.states[states[,assay]==seg.lair$chrom[state] & maploc>=seg.lair$loc.start[state] & maploc<=seg.lair$loc.end[state],assay]<-state
-          lair.predicted[states[,assay]==seg.lair$chrom[state] & maploc>=seg.lair$loc.start[state] & maploc<=seg.lair$loc.end[state],assay]<-seg.lair$seg.mean[state]
+          stateprobes<-states[,assay]==seg.lair$chrom[state] & maploc>=seg.lair$loc.start[state] & maploc<=seg.lair$loc.end[state]
+          lair.states[stateprobes,assay]<-state
+          lair.predicted[stateprobes,assay]<-seg.lair$seg.mean[state]
         }
-        
       }
     }
     res<-object
