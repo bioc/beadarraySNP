@@ -9,10 +9,10 @@ exportClasses(SnpSetIllumina, SnpSetSegments, QCIllumina)
 exportMethods("[", "[[", "$", annotation, combine, experimentData, exprs, featureNames, 
              pData, phenoData, sampleNames, samples, featureData, sortGenomic,
              "annotation<-", "description<-", "experimentData<-", "exprs<-", 
-             "featureNames<-", "geneNames<-", "pData<-",
+             "featureNames<-", "pData<-",
              "phenoData<-", "sampleNames<-", "assayData<-", "featureData<-",
              fData,"fData<-",
-             dim, assayData, reporterNames, initialize,
+             dim, assayData, initialize,
              "arrayType<-", "arrayID<-", arrayType, arrayID,
              plotQC, reportSamplePanelQC,
              calculateGSR, cn.segments, "cn.segments<-")
