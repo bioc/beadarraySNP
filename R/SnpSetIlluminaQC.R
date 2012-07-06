@@ -86,8 +86,8 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
     calls<-assayDataElement(object,"call")
     int<-R+G
     idx<-order(numericCHR(pData(featureData(object))$CHR),pData(featureData(object))$MapInfo)
-    int<-int[idx,]
-    ptpdiff<-abs(int[-1,]-int[-nrow(int),])/(int[-1,]+int[-nrow(int),])
+    int<-int[idx,,drop=FALSE]
+    ptpdiff<-abs(int[-1,,drop=FALSE]-int[-nrow(int),,drop=FALSE])/(int[-1,,drop=FALSE]+int[-nrow(int),,drop=FALSE])
     
     for (smp in sampleNames(object)) {
       if (arrayType(QCobject) %in% c("Sentrix96","Sentrix16")) {
