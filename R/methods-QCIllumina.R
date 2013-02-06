@@ -36,11 +36,11 @@ setReplaceMethod("arrayType", "QCIllumina", function(object, value) {
 		matn
 	}
 
-	value<-match.arg(value,c("Sentrix96","Sentrix16","Slide12","Quad"))
+	value<-match.arg(value,c("Sentrix96","Sentrix16","Slide12","Quad","Slide6x2"))
 	object@arrayType <- value
-  if (value=="Sentrix96") {
-		ncols<-12
-		nrows<-8
+	if (value=="Sentrix96") {
+	  ncols<-12
+	  nrows<-8
 	} else if (value=="Sentrix16"){
 	  ncols<-2
 	  nrows<-8
@@ -50,7 +50,11 @@ setReplaceMethod("arrayType", "QCIllumina", function(object, value) {
 	} else if (value=="Quad") {
 	  ncols=2
 	  nrows=2
-  }
+	} else if (value=="Slide6x2") {
+	  ncols=2
+	  nrows=6
+	}
+  
 	
 	object@intensityMed<-getmatrix(object@intensityMed)
 	object@greenMed<-getmatrix(object@greenMed)
@@ -85,23 +89,24 @@ setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMe
   }
   # character fields
 	checkerboard<-function(z,...) {
-	  H<-matrix(rep(c(1,0.9),length(z)/2),nrow(z),ncol(z))
-    H[,seq(2,ncol(z),by=2)]<-1.9-H[,seq(2,ncol(z),by=2)]
-    image.plate(H,zlim=c(0,1),xlab="",...)
-    text(col(z),row(z)-((col(z)-1)%%4)*0.2+0.3,labels=z,cex=0.6)
-	 }
+		H<-matrix(rep(c(1,0.9),length(z)/2),nrow(z),ncol(z))
+		H[,seq(2,ncol(z),by=2)]<-1.9-H[,seq(2,ncol(z),by=2)]
+		image.plate(H,zlim=c(0,1),xlab="",...)
+		sw<-max(strwidth(z))
+		text(col(z),row(z)-((col(z)-1)%%4)*0.2+0.3,labels=z,cex=0.9/sw)
+	}
 	 
 	 type<-match.arg(type)
 	 switch(type, 
 	    intensityMed = image.plate(object@intensityMed, main="median Intensity"),
-			greenMed = image.plate(object@greenMed, main="median Green", col= rgb(0,0:255,0,max=255)), 
-			redMed = image.plate(object@redMed, main="median Red", col= rgb(0:255,0,0,max=255)), 
-			validn = image.plate(object@validn,main="valid probes"),
-			annotation = checkerboard(object@annotation,main="annotation"),
-			samples = checkerboard(object@samples,main="samples"),
-			ptpdiff = image.plate(object@ptpdiff,main="point to point relative difference"),
-      callrate = image.plate(object@callrate,main="call rate"),
-      hetPerc  = image.plate(object@hetPerc,main="% heterozygote"))
+		greenMed = image.plate(object@greenMed, main="median Green", col= rgb(0,0:255,0,max=255)), 
+		redMed = image.plate(object@redMed, main="median Red", col= rgb(0:255,0,0,max=255)), 
+		validn = image.plate(object@validn,main="valid probes"),
+		annotation = checkerboard(object@annotation,main="annotation"),
+		samples = checkerboard(object@samples,main="samples"),
+		ptpdiff = image.plate(object@ptpdiff,main="point to point relative difference"),
+		callrate = image.plate(object@callrate,main="call rate"),
+		hetPerc  = image.plate(object@hetPerc,main="% heterozygote"))
 	 invisible()
 })
 
@@ -138,7 +143,7 @@ setMethod("reportSamplePanelQC", "QCIllumina", function(object, by=10, legend=TR
 pdfQC<-function(object,filename="arrayQC.pdf",by=10) {
   reportSingleObject<-function(qcobject) {
     if (arrayType(qcobject) %in% c("Sentrix96","Quad")) par(mfrow=c(4,2),mar=c(4,2,3,1))
-    else if(arrayType(qcobject)=="Sentrix16") par(mfrow=c(2,4),mar=c(4,2,3,1))
+    else if(arrayType(qcobject) %in% c("Sentrix16","Slide6x2")) par(mfrow=c(2,4),mar=c(4,2,3,1))
     else if(arrayType(qcobject)=="Slide12") par(mfrow=c(8,1),mar=c(4,2,3,1))
     else stop("Unknown arrayType")
     plotQC(qcobject,"greenMed")

@@ -65,7 +65,10 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
         samples<-pData(object)[,barcodesCol[opa]]==barcode
         objectsub<-object[probes,samples]
         smpPosition<-pData(objectsub)[,paste("SentrixPosition_",opapanels[opa],sep="")]
-        pData(objectsub)<-cbind(pData(objectsub)[,c("Sample_Name","Sample_ID")],Sentrix_ID=pData(objectsub)[,barcodesCol[opa]],Col=as.numeric(substr(smpPosition,7,9)),Row=as.numeric(substr(smpPosition,2,4)))
+        pData(objectsub)<-cbind(pData(objectsub)[,c("Sample_Name","Sample_ID")],
+		    Sentrix_ID=pData(objectsub)[,barcodesCol[opa]],
+			Col = as.numeric(sub("R([[:digit:]]+)C([[:digit:]]+)","\\2",smpPosition)),
+			Row = as.numeric(sub("R([[:digit:]]+)C([[:digit:]]+)","\\1",smpPosition)))
         annotation(objectsub)<-opaAnnot[opa]
         qcobjects[[barcode]]<-calculateQCarray(objectsub,qcobjects[[barcode]],arrayType)
       }
@@ -90,7 +93,7 @@ calculateQCarray<-function(object,QCobject=NULL,arrayType="Sentrix96") {
     ptpdiff<-abs(int[-1,,drop=FALSE]-int[-nrow(int),,drop=FALSE])/(int[-1,,drop=FALSE]+int[-nrow(int),,drop=FALSE])
     
     for (smp in sampleNames(object)) {
-      if (arrayType(QCobject) %in% c("Sentrix96","Sentrix16")) {
+      if (arrayType(QCobject) %in% c("Sentrix96","Sentrix16","Slide6x2")) {
         co<-pData(object)[smp,"Col"]
         ro<-pData(object)[smp,"Row"]
     	} else if (arrayType(QCobject)=="Slide12"){
