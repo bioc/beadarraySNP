@@ -8,7 +8,7 @@
 }
 \usage{
 plotGoldenGate4OPA(object, cn.sum = NULL, sample = 1, plotRaw = FALSE, main = NULL, interact = FALSE, ...)
-plotGenomePanels(object, cn.sum = NULL, sample = 1, plotRaw = FALSE, main = NULL, interact = FALSE, panels = list(p1 = c(1, 2, 3, 22), p2 = c(5, 6, 7, 8, 9), p3 = c(10, 11, 12, 13, 14, 15, 21), p4 = c(4, 16, 17, 18, 19, 20, 98, 99)), ...)
+plotGenomePanels(object, cn.sum = NULL, sample = 1, plotRaw = FALSE, main = NULL, interact = FALSE, allLair=FALSE, panels = list(p1 = c(1, 2, 3, 22), p2 = c(5, 6, 7, 8, 9), p3 = c(10, 11, 12, 13, 14, 15, 21), p4 = c(4, 16, 17, 18, 19, 20, 98, 99)), ...)
 }
 \arguments{
   \item{object}{class \code{SnpSetIllumina}}
@@ -17,6 +17,7 @@ plotGenomePanels(object, cn.sum = NULL, sample = 1, plotRaw = FALSE, main = NULL
   \item{plotRaw}{logical, plot raw data points}
   \item{main}{character, Title of plot}
   \item{interact}{logical, plot should be usable for interactive copy number determination \code{interactiveCNselect}}
+  \item{allLair}{logical, TRUE: plot all LAIR values, FALSE: only plot LAIR values from probes that are heterozygous in the paired normal sample}
   \item{panels}{list, vectors of chromosomes for each panel}
   \item{\dots}{extra arguments are formwarded to \code{plot}}
 }

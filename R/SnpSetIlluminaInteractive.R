@@ -123,7 +123,7 @@ plotGoldenGate4OPA<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL
   invisible(cn.sum)
 }
 
-plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,interact=FALSE,panels=list(p1=c(1,2,3,22),p2=c(5,6,7,8,9),p3=c(10,11,12,13,14,15,21),p4=c(4,16,17,18,19,20,98,99)),...) {
+plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,interact=FALSE,allLair=FALSE,panels=list(p1=c(1,2,3,22),p2=c(5,6,7,8,9),p3=c(10,11,12,13,14,15,21),p4=c(4,16,17,18,19,20,98,99)),...) {
   if (!all(c("lair","nor.gt","loh") %in% assayDataElementNames(object)))
     stop("'calculateLOH' should be performed before making this plot")
   if (!all(c("observed","states","predicted") %in% assayDataElementNames(object)))
@@ -190,7 +190,11 @@ plotGenomePanels<-function(object,cn.sum=NULL,sample=1,plotRaw=FALSE,main=NULL,i
     lair.offset<- -0.15
     lair.range<- 0.40
     het.nrm<-assayData(object)$nor.gt[selection,sample]=="TRUE"
-    het.nrm<-names(het.nrm)[het.nrm]
+	if (allLair) {
+	  het.nrm<-names(het.nrm)
+	}else{
+      het.nrm<-names(het.nrm)[het.nrm]
+	}
     het.nrm<-het.nrm[!is.na(het.nrm)]
     idx<-which(featureNames(object)[selection] %in% het.nrm)
     points(idx/selected.n,y.base+lair.offset+assayData(object)$lair[het.nrm,sample]*lair.range,pch="-",col="blue")

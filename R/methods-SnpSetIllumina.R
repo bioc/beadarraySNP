@@ -257,7 +257,7 @@ read.SnpSetIllumina<-function(samplesheet, manifestpath=NULL, reportpath=NULL, r
     if (readTIF) {
       if (!require(beadarray)) stop("beadarray package is needed to load data from tif files")
       BL<-readIllumina(paste(samples[,"Sentrix_ID"],samples[,"Sentrix_Position"],sep="_"),textType=".txt",rawdatapath,...)
-      BS<-createBeadSummaryData(BL,imagesPerArray=1)
+      BS<-summarize(BL)
       ind<-as.character(SNPinfo$IllCode)
       G<-assayData(BS)$G[ind,]
       R<-assayData(BS)$R[ind,]

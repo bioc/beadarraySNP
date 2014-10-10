@@ -99,8 +99,8 @@ setMethod("plotQC", "QCIllumina", function(object,type=c("intensityMed","greenMe
 	 type<-match.arg(type)
 	 switch(type, 
 	    intensityMed = image.plate(object@intensityMed, main="median Intensity"),
-		greenMed = image.plate(object@greenMed, main="median Green", col= rgb(0,0:255,0,max=255)), 
-		redMed = image.plate(object@redMed, main="median Red", col= rgb(0:255,0,0,max=255)), 
+		greenMed = image.plate(object@greenMed, main="median Green", col= rgb(0,0:255,0,maxColorValue=255)), 
+		redMed = image.plate(object@redMed, main="median Red", col= rgb(0:255,0,0,maxColorValue=255)), 
 		validn = image.plate(object@validn,main="valid probes"),
 		annotation = checkerboard(object@annotation,main="annotation"),
 		samples = checkerboard(object@samples,main="samples"),
@@ -127,7 +127,7 @@ setMethod("reportSamplePanelQC", "QCIllumina", function(object, by=10, legend=TR
   }
   colstart<-3
   colend<-2+length(panels)
-  opacol<-c(rgb(r=0,b=0,g=colstart:colend,maxColorValue=colend),rgb(r=colstart:colend,b=0,g=0,maxColorValue=colend))
+  opacol<-c(rgb(red=0,blue=0,green=colstart:colend,maxColorValue=colend),rgb(red=colstart:colend,blue=0,green=0,maxColorValue=colend))
 
   greenmed<-rbind(greenmed,redmed)
   for (i in seq(1,length(samples),by=by)) {

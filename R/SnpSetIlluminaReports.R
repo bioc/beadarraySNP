@@ -332,7 +332,7 @@ reportGenomeIntensityPlot<-function(snpdata,normalizedTo=NULL,subsample=NULL,smo
     snpdata<-snpdata[ind,]
   }
   # find boundaries between subsamples
-  xax<-beadarraySNP:::getMidMaxIdx(subsample)
+  xax<-getMidMaxIdx(subsample)
   if (smoothing=="mean") {
     avg.intensity<-aggregate(assayData(snpdata)$intensity,by=list(subsample),FUN=mean,na.rm=TRUE)
     idx<-match(rownames(xax),avg.intensity[,1])
